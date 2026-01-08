@@ -11,6 +11,8 @@ function Product({ productLabel, simSelectId }) {
   const [phonieResult, setPhonieResult] = useState(null) // 'ok' | 'ko' | null
   const [batteryResult, setBatteryResult] = useState(null) // 'ok' | 'ko' | null
 
+  const simStorageKey = useMemo(() => `sim:last:${simSelectId}`,[simSelectId])
+
   const validateSerial = useMemo(() => {
     const re = /^[A-Z0-9]{6,20}$/
     return (v) => re.test(v.toUpperCase())
@@ -29,15 +31,21 @@ function Product({ productLabel, simSelectId }) {
   const handleValid = (value) => {
     const v = value.toUpperCase()
     setSerial(v)
-    setSelectedSim('')
     setShowSimSelect(true)
+    // Restore last SIM used for this product if available
+    try {
+      const saved = localStorage.getItem(simStorageKey) || ''
+      setSelectedSim(saved)
+    } catch (e) {
+      setSelectedSim('')
+    }
     setIsReady(null)
     setPhonieResult(null)
     setBatteryResult(null)
   }
 
   useEffect(() => {
-    // Changing SIM resets readiness and phonie result
+    //eChanging SIM resets readiness and phonie result
     setIsReady(null)
     setPhonieResult(null)
     setBatteryResult(null)
@@ -47,6 +55,15 @@ function Product({ productLabel, simSelectId }) {
     // Changing phonie result resets battery step
     setBatteryResult(null)
   }, [phonieResult])
+
+  useEffect(() => {
+    // Persist SIM choice per product when selected
+    try {
+      if (selectedSim) localStorage.setItem(simStorageKey, selectedSim)
+    } catch (e) {
+      // ignore storage errors
+    }
+  }, [selectedSim, simStorageKey])
 
   const resetAll = () => {
     setSerial('')
