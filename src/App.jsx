@@ -1,6 +1,5 @@
 import './App.css'
-import ProductA from './components/ProductA.jsx'
-import ProductB from './components/ProductB.jsx'
+import Product from './components/Product.jsx'
 import logo from './assets/logo.jpg'
 
 function App() {
@@ -13,8 +12,8 @@ function App() {
         </div>
       </header>
       <main className="split-view">
-        <ProductA />
-        <ProductB />
+        <Product productLabel="Product A" simSelectId="simSelectA" />
+        <Product productLabel="Product B" simSelectId="simSelectB" />
       </main>
     </div>
   )
