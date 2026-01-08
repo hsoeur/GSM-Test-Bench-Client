@@ -3,15 +3,21 @@ import { useEffect, useRef, useState } from 'react'
 function KeyboardScanner({
   title = 'Scanner USB (clavier)',
   onScan,
+  validate,
+  onValid,
+  onInvalid,
+  invalidMessage = 'Veuillez entrer un numéro de série valide',
   suffixKeys = ['Enter', 'Tab'],
   autoFocus = true,
   clearAfterScan = true,
   minLength = 3,
   showCaptureButton = true,
+  showLastResult = true,
 }) {
   const inputRef = useRef(null)
   const [buffer, setBuffer] = useState('')
   const [lastResult, setLastResult] = useState('')
+  const [errorMsg, setErrorMsg] = useState('')
 
   useEffect(() => {
     if (autoFocus) inputRef.current?.focus()
@@ -20,9 +26,18 @@ function KeyboardScanner({
   const commitScan = () => {
     const value = buffer.trim()
     if (value.length >= minLength) {
-      setLastResult(value)
-      if (onScan) onScan(value)
-      if (clearAfterScan) setBuffer('')
+      const isValid = validate ? !!validate(value) : true
+      if (isValid) {
+        setErrorMsg('')
+        setLastResult(value)
+        if (onScan) onScan(value)
+        if (onValid) onValid(value)
+        if (clearAfterScan) setBuffer('')
+      } else {
+        setLastResult('')
+        setErrorMsg(invalidMessage)
+        if (onInvalid) onInvalid(value)
+      }
     }
   }
 
@@ -63,8 +78,8 @@ function KeyboardScanner({
           onKeyDown={onKeyDown}
         />
       </div>
-
-      {lastResult && <div className="result ok">Code: {lastResult}</div>}
+      {errorMsg && <div className="result ko">{errorMsg}</div>}
+      {showLastResult && lastResult && <div className="result ok">Code: {lastResult}</div>}
     </div>
   )
 }

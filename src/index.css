@@ -1,3 +1,29 @@
+/* Global variables — modern industrial (teal/charcoal) */
+:root {
+	--accent-600: #14b8a6; /* teal primary */
+	--accent-700: #0f766e; /* teal hover */
+	--gray-50: #f8fafc;
+	--gray-100: #f1f5f9;
+	--gray-200: #e2e8f0;
+	--gray-300: #cbd5e1;
+	--gray-600: #475569;
+	--gray-800: #1f2937;
+	--white: #ffffff;
+
+	--bg: var(--gray-100);
+	--surface: var(--white);
+	--text: #111827; /* neutral dark */
+	--muted: #6b7280; /* gray-500 */
+	--border: var(--gray-200);
+	--input-bg: var(--white);
+	--ring: rgba(20, 184, 166, 0.25);
+	--header-text: #000000; /* black text as requested */
+	--header-blue: #415985; /* requested blue */
+	--header-bg: rgba(65, 89, 133, 0.34); /* translucent #415985 */
+	--header-border: rgba(65, 89, 133, 0.55);
+	--header-gloss: rgba(255, 255, 255, 0.16); /* subtle highlight */
+}
+
 html, body, #root {
 	height: 100%;
 }
@@ -5,5 +31,8 @@ html, body, #root {
 body {
 	margin: 0;
 	font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica Neue, Arial, "Apple Color Emoji", "Segoe UI Emoji";
-	background: #0f172a;
+	background: var(--bg);
+	color: var(--text);
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
 }
