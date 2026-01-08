@@ -22,7 +22,14 @@ function ShapeDisplay({ serial = '', sim = '', ready = false, shape: forcedShape
 
   return (
     <div className="scanner-body" style={style}>
-      <img src={src} alt={`${shape} shape`} className="shape-image" />
+      <div className="shape-container">
+        <img src={src} alt={`${shape} shape`} className="shape-image" />
+        {shape === 'gray' && (
+          <div className="shape-overlay">
+            <span className="shape-overlay-text">Veuillez scanner le code barre du produit et choisir une carte SIM</span>
+          </div>
+        )}
+      </div>
     </div>
   )
 }
