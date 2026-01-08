@@ -1,0 +1,144 @@
+/* Split screen container */
+.split-view {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 12px;
+	height: 100%;
+	min-height: 100vh;
+	padding: 12px;
+	box-sizing: border-box;
+	background: #0f172a; /* slate-900 */
+}
+
+/* Panel styling shared by ProductA/ProductB */
+.panel {
+	display: flex;
+	flex-direction: column;
+	border-radius: 10px;
+	background: #0b1024; /* dark card */
+	border: 1px solid #1f2a4b;
+	color: #e5e7eb;
+	overflow: hidden;
+}
+
+.panel-header {
+	padding: 14px 16px;
+	border-bottom: 1px solid #1f2a4b;
+	display: flex;
+	align-items: baseline;
+	gap: 10px;
+}
+
+.panel-header h2 {
+	margin: 0;
+	font-size: 18px;
+}
+
+.panel-subtitle {
+	color: #94a3b8;
+	font-size: 13px;
+}
+
+.panel-body {
+	padding: 16px;
+	display: grid;
+	gap: 12px;
+}
+
+.form-label {
+	font-size: 13px;
+	color: #cbd5e1;
+}
+
+.input {
+	height: 36px;
+	border-radius: 8px;
+	border: 1px solid #334155;
+	background: #0b1024;
+	color: #e5e7eb;
+	padding: 0 12px;
+}
+
+.input:focus {
+	outline: none;
+	border-color: #3b82f6;
+	box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.btn {
+	height: 36px;
+	border: none;
+	border-radius: 8px;
+	background: #3b82f6;
+	color: white;
+	font-weight: 600;
+	cursor: pointer;
+}
+
+.btn:disabled {
+	opacity: 0.6;
+	cursor: not-allowed;
+}
+
+.result {
+	padding: 10px 12px;
+	border-radius: 8px;
+	font-size: 14px;
+}
+
+.result.ok {
+	background: rgba(34, 197, 94, 0.15);
+	color: #22c55e;
+	border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.result.ko {
+	background: rgba(239, 68, 68, 0.15);
+	color: #ef4444;
+	border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+/* Responsive: stack on small screens */
+@media (max-width: 900px) {
+	.split-view {
+		grid-template-columns: 1fr;
+	}
+}
+
+/* Scanner UI */
+.scanner {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.scanner-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 10px;
+}
+
+.scanner-controls {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.scanner-body {
+	background: #0a0f22;
+	border: 1px dashed #334155;
+	border-radius: 8px;
+	overflow: hidden;
+}
+
+.scanner-video {
+	width: 100%;
+	height: 220px;
+	object-fit: cover;
+	background: black;
+}
+
+/* Keyboard scanner */
+.kbd-scanner { display: flex; flex-direction: column; gap: 10px; }
+.kbd-input { height: 42px; font-size: 16px; }
