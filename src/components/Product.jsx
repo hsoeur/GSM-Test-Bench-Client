@@ -48,6 +48,15 @@ function Product({ productLabel, simSelectId }) {
     setBatteryResult(null)
   }, [phonieResult])
 
+  const resetAll = () => {
+    setSerial('')
+    setShowSimSelect(false)
+    setSelectedSim('')
+    setIsReady(null)
+    setPhonieResult(null)
+    setBatteryResult(null)
+  }
+
 
   return (
     <div className="panel">
@@ -100,6 +109,15 @@ function Product({ productLabel, simSelectId }) {
               </div>
             )}
 
+            {selectedSim && isReady === false && (
+              <div className="prompt">
+                <p style={{ margin: 0 }}>Le produit n'est pas bien initialisé.</p>
+                <div className="prompt-actions" style={{ marginTop: 8 }}>
+                  <button className="btn" onClick={resetAll}>Recommencer</button>
+                </div>
+              </div>
+            )}
+
             {selectedSim && isReady === true && phonieResult === null && (
               <div className="prompt">
                 <p style={{ margin: 0 }}>Tester la Phonie et indiquer le résultat du test :</p>
@@ -116,6 +134,12 @@ function Product({ productLabel, simSelectId }) {
               </div>
             )}
 
+            {phonieResult === 'ko' && (
+              <div style={{ marginTop: 8 }}>
+                <button className="btn" onClick={resetAll}>Tester un autre produit</button>
+              </div>
+            )}
+
             {selectedSim && isReady === true && phonieResult === 'ok' && batteryResult === null && (
               <div className="prompt">
                 <p style={{ margin: 0 }}>Basculez sur la batterie et vérifiez si la LED s’allume. Indiquez le résultat :</p>
@@ -129,6 +153,12 @@ function Product({ productLabel, simSelectId }) {
             {batteryResult && (
               <div className={`result ${batteryResult === 'ok' ? 'ok' : 'ko'}`}>
                 {batteryResult === 'ok' ? 'Bascule batterie: OK' : 'Bascule batterie: Échec du test'}
+              </div>
+            )}
+
+            {(batteryResult === 'ok' || batteryResult === 'ko') && (
+              <div style={{ marginTop: 8 }}>
+                <button className="btn" onClick={resetAll}>Tester un autre produit</button>
               </div>
             )}
       </div>
