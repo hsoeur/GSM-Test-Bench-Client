@@ -7,7 +7,7 @@ function ProductA() {
         <h2>Product A</h2>
       </div>
       <div className="panel-body">
-        <KeyboardScanner title="Scanner Numéro de série" />
+        <KeyboardScanner title="Scanner Numéro de série" showCaptureButton={false} />
       </div>
     </div>
   )

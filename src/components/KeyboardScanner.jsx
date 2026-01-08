@@ -7,6 +7,7 @@ function KeyboardScanner({
   autoFocus = true,
   clearAfterScan = true,
   minLength = 3,
+  showCaptureButton = true,
 }) {
   const inputRef = useRef(null)
   const [buffer, setBuffer] = useState('')
@@ -45,7 +46,9 @@ function KeyboardScanner({
       <div className="scanner-header">
         <strong>{title}</strong>
         <div className="scanner-controls">
-          <button className="btn" onClick={focusCapture}>Capturer</button>
+          {showCaptureButton && (
+            <button className="btn" onClick={focusCapture}>Capturer</button>
+          )}
         </div>
       </div>
 
