@@ -205,3 +205,11 @@
 
 /* Test sequence */
 .test-sequence { display: flex; flex-direction: column; }
+
+/* Shape display */
+.shape-image { width: 315px; height: auto; display: block; margin: 8px auto; animation: fadeIn 180ms ease-in; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+/* READY prompt */
+.prompt { background: var(--gray-50); border: 1px solid var(--border); border-radius: 10px; padding: 12px; }
+.prompt-actions { display: flex; gap: 8px; }
