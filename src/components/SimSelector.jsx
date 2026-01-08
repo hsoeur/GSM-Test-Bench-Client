@@ -25,6 +25,7 @@ function SimSelector({
           value={value}
           disabled={disabled}
           onChange={handleChange}
+          style={{ flex: 1, minWidth: 0 }}
         >
           <option value="">-- Sélectionner une carte SIM --</option>
           {options.map((opt) => (
