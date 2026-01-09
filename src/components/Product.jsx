@@ -165,7 +165,8 @@ function Product({ productLabel, simSelectId }) {
             )}
 
             {phonieResult === 'ko' && (
-              <div style={{ marginTop: 8 }}>
+              <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
+                <button className="btn" onClick={() => setPhonieResult(null)}>Retester ce produit</button>
                 <button className="btn" onClick={resetAll}>Tester un autre produit</button>
               </div>
             )}
