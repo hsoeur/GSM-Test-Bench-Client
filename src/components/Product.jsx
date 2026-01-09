@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from 'react'
+import ProgressBar from './ProgressBar.jsx'
 import KeyboardScanner from './KeyboardScanner.jsx'
 import SimSelector from './SimSelector.jsx'
 import ShapeDisplay from './ShapeDisplay.jsx'
@@ -75,6 +76,16 @@ function Product({ productLabel, simSelectId }) {
     setBatteryResult(null)
   }
 
+  const stepsTotal = 5
+  const stepsDone = (
+    (serial ? 1 : 0) +
+    (selectedSim ? 1 : 0) +
+    (isReady !== null ? 1 : 0) +
+    (phonieResult !== null ? 1 : 0) +
+    (batteryResult !== null ? 1 : 0)
+  )
+  const progressPct = Math.round((stepsDone / stepsTotal) * 100)
+
 
   return (
     <div className="panel">
@@ -82,6 +93,9 @@ function Product({ productLabel, simSelectId }) {
         <h2>{productLabel}</h2>
       </div>
       <div className="panel-body">
+            <div style={{ marginBottom: 12 }}>
+              <ProgressBar value={progressPct} label={`Avancement du test: ${progressPct}%`} />
+            </div>
             <KeyboardScanner
               title="Scanner Numéro de série"
               showCaptureButton={false}
