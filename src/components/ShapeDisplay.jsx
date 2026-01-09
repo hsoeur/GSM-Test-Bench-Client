@@ -25,8 +25,13 @@ function ShapeDisplay({ serial = '', sim = '', ready = false, shape: forcedShape
       <div className="shape-container">
         <img src={src} alt={`${shape} shape`} className="shape-image" />
         {shape === 'gray' && (
-          <div className="shape-overlay">
+          <div className="shape-overlay gray">
             <span className="shape-overlay-text">Veuillez scanner le code barre du produit et choisir une carte SIM</span>
+          </div>
+        )}
+        {shape === 'blue' && (
+          <div className="shape-overlay blue">
+            <span className="shape-overlay-text">En cours de test</span>
           </div>
         )}
       </div>
