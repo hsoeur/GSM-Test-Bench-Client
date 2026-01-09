@@ -21,16 +21,24 @@ export async function checkGsmHealth(timeoutMs = 4000) {
 }
 
 export async function checkDataHealth(timeoutMs = 4000) {
-  const url = ENDPOINTS.dataHealth
-  if (!url) return { state: 'na' }
+  const apiUrl = ENDPOINTS.dataApiHealth
+  const dbUrl = ENDPOINTS.dataDbHealth
+  if (!apiUrl && !dbUrl) return { state: 'na' }
   try {
-    const { ok, data } = await getJson(url, { timeout: timeoutMs })
-    if (!ok) return { state: 'ko' }
+    const [apiRes, dbRes] = await Promise.all([
+      apiUrl ? getJson(apiUrl, { timeout: timeoutMs }) : Promise.resolve({ ok: false, data: null }),
+      dbUrl ? getJson(dbUrl, { timeout: timeoutMs }) : Promise.resolve({ ok: false, data: null }),
+    ])
+
+    const apiOk = !!(apiRes.ok && apiRes.data?.api)
+    const dbOk = !!(dbRes.ok && dbRes.data?.database)
+
     return {
-      state: data?.api ? 'ok' : 'ko',
+      // État principal basé sur la santé API (comme convenu)
+      state: apiOk ? 'ok' : 'ko',
       details: {
-        api: !!data?.api,
-        database: !!data?.database,
+        api: apiOk,
+        database: dbOk,
       },
     }
   } catch (e) {

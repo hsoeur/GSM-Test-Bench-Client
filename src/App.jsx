@@ -20,7 +20,7 @@ function App() {
       </main>
       <ApiStatusFooter
         endpoints={[
-          { id: 'data', label: 'API DATA', url: ENDPOINTS.dataHealth, parse: undefined, check: checkDataHealth, subIndicators: [
+          { id: 'data', label: 'API DATA', check: checkDataHealth, subIndicators: [
             { key: 'database', label: 'Base' },
           ] },
           { id: 'test', label: 'API TEST GSM', check: checkGsmHealth, subIndicators: [

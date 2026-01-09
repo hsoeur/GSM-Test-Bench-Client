@@ -34,6 +34,7 @@ export default function ApiStatusFooter({
   pollIntervalMs = 10000,
   timeoutMs = 4000,
   method = 'GET',
+  debug = import.meta.env.DEV,
 }) {
   const [states, setStates] = useState(() => {
     const init = {}
@@ -58,13 +59,39 @@ export default function ApiStatusFooter({
             newStates[ep.id] = result?.state || 'ko'
             if (result?.details) newDetails[ep.id] = result.details
             else delete newDetails[ep.id]
+            if (debug) {
+              console.log('[API Status][checker]', {
+                id: ep.id,
+                label: ep.label,
+                state: newStates[ep.id],
+                details: newDetails[ep.id],
+                source: 'check',
+                at: new Date().toISOString(),
+              })
+            }
           } catch (_) {
             newStates[ep.id] = 'ko'
             delete newDetails[ep.id]
+            if (debug) {
+              console.error('[API Status][checker][error]', {
+                id: ep.id,
+                label: ep.label,
+                state: newStates[ep.id],
+                at: new Date().toISOString(),
+              })
+            }
           }
         } else {
           newStates[ep.id] = 'na'
           delete newDetails[ep.id]
+          if (debug) {
+            console.log('[API Status][na]', {
+              id: ep.id,
+              label: ep.label,
+              reason: 'no url and no checker',
+              at: new Date().toISOString(),
+            })
+          }
         }
         return
       }
@@ -77,17 +104,55 @@ export default function ApiStatusFooter({
             newStates[ep.id] = parsed && parsed.state ? parsed.state : (res.ok ? 'ok' : 'ko')
             if (parsed && parsed.details) newDetails[ep.id] = parsed.details
             else delete newDetails[ep.id]
+            if (debug) {
+              console.log('[API Status][parse]', {
+                id: ep.id,
+                label: ep.label,
+                url: ep.url,
+                httpOk: res.ok,
+                state: newStates[ep.id],
+                details: newDetails[ep.id],
+                at: new Date().toISOString(),
+              })
+            }
           } catch (e) {
             newStates[ep.id] = 'ko'
             delete newDetails[ep.id]
+            if (debug) {
+              console.error('[API Status][parse][error]', {
+                id: ep.id,
+                label: ep.label,
+                url: ep.url,
+                at: new Date().toISOString(),
+              })
+            }
           }
         } else {
           newStates[ep.id] = res.ok ? 'ok' : 'ko'
           delete newDetails[ep.id]
+          if (debug) {
+            console.log('[API Status][http]', {
+              id: ep.id,
+              label: ep.label,
+              url: ep.url,
+              httpOk: res.ok,
+              state: newStates[ep.id],
+              at: new Date().toISOString(),
+            })
+          }
         }
       } catch (err) {
         newStates[ep.id] = 'ko'
         delete newDetails[ep.id]
+        if (debug) {
+          console.error('[API Status][http][error]', {
+            id: ep.id,
+            label: ep.label,
+            url: ep.url,
+            message: err?.message,
+            at: new Date().toISOString(),
+          })
+        }
       }
     })
     await Promise.all(checks)
