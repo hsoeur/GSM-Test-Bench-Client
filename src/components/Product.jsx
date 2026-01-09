@@ -79,7 +79,6 @@ function Product({ productLabel, simSelectId }) {
     <div className="panel">
       <div className="panel-header">
         <h2>{productLabel}</h2>
-        <span className="panel-subtitle">Veuillez scanner un numéro de série</span>
       </div>
       <div className="panel-body">
             <KeyboardScanner
