@@ -8,5 +8,20 @@ export default defineConfig({
     host: 'localhost',
     port: 18082,
     strictPort: false,
+    proxy: {
+      // Separate proxies to avoid path conflicts between backends
+      '/gsm-api': {
+        target: 'http://localhost:5001',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/gsm-api/, ''),
+      },
+      '/data-api': {
+        target: 'http://localhost:5252',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/data-api/, ''),
+      },
+    },
   },
 })

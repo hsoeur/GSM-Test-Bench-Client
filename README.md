@@ -1,16 +1,31 @@
-# React + Vite
+# UI Test GSM
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Development
 
-Currently, two official plugins are available:
+Run the dev server:
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+```
+npm install
+npm run dev
+```
 
-## React Compiler
+## Configuration
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+All API endpoints are centralized and driven by environment variables. Do not hardcode URLs in components.
 
-## Expanding the ESLint configuration
+1. Create a `.env.local` at the project root (git-ignored) by copying `.env.example`:
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+```
+copy .env.example .env.local
+```
+
+2. Edit values as needed:
+
+```
+VITE_API_TEST_GSM_BASE=http://localhost:5001
+VITE_API_DATA_BASE=http://localhost:5002
+```
+
+3. Endpoint resolution lives in `src/config/apiConfig.js` and API calls in `src/services/*`.
+
+Components should only consume services/config, e.g. the footer uses `checkGsmHealth()` without embedding URLs.
