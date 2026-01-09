@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { BrowserMultiFormatReader } from '@zxing/browser'
+import ImpactMessage from './ImpactMessage.jsx'
 
 function BarcodeScanner({ title = 'Scanner de code-barres', onScan, autoStart = false }) {
   const videoRef = useRef(null)
@@ -107,8 +108,16 @@ function BarcodeScanner({ title = 'Scanner de code-barres', onScan, autoStart = 
         <video ref={videoRef} className="scanner-video" muted playsInline />
       </div>
 
-      {lastResult && <div className="result ok">Code: {lastResult}</div>}
-      {error && <div className="result ko">{error}</div>}
+      {lastResult && (
+        <ImpactMessage variant="success" title="Code scanné">
+          Code: {lastResult}
+        </ImpactMessage>
+      )}
+      {error && (
+        <ImpactMessage variant="error" title="Échec du scan">
+          {error}
+        </ImpactMessage>
+      )}
     </div>
   )
 }

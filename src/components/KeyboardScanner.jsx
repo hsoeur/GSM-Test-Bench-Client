@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import ImpactMessage from './ImpactMessage.jsx'
 
 function KeyboardScanner({
   title = 'Scanner USB (clavier)',
@@ -78,8 +79,16 @@ function KeyboardScanner({
           onKeyDown={onKeyDown}
         />
       </div>
-      {errorMsg && <div className="result ko">{errorMsg}</div>}
-      {showLastResult && lastResult && <div className="result ok">Code: {lastResult}</div>}
+      {errorMsg && (
+        <ImpactMessage variant="error" title="Numéro de série invalide">
+          {errorMsg}
+        </ImpactMessage>
+      )}
+      {showLastResult && lastResult && (
+        <ImpactMessage variant="success" title="Lecture réussie">
+          Code: {lastResult}
+        </ImpactMessage>
+      )}
     </div>
   )
 }

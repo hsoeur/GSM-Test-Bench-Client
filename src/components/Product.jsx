@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from 'react'
 import KeyboardScanner from './KeyboardScanner.jsx'
 import SimSelector from './SimSelector.jsx'
 import ShapeDisplay from './ShapeDisplay.jsx'
+import ImpactMessage from './ImpactMessage.jsx'
 
 function Product({ productLabel, simSelectId }) {
   const [serial, setSerial] = useState('')
@@ -116,38 +117,51 @@ function Product({ productLabel, simSelectId }) {
             />
 
             {selectedSim && isReady === null && (
-              <div className="prompt">
-                <p style={{ margin: 0 }}>Le produit est-il en mode READY (bien initialisé) ?</p>
-                <div className="prompt-actions" style={{ marginTop: 8 }}>
-                  <button className="btn" onClick={() => setIsReady(true)}>Oui</button>
-                  <button className="btn" onClick={() => setIsReady(false)}>Non</button>
-                </div>
-              </div>
+              <ImpactMessage
+                variant="info"
+                title="Confirmez l’état READY"
+                actions={(
+                  <>
+                    <button className="btn" onClick={() => setIsReady(true)}>Oui</button>
+                    <button className="btn" onClick={() => setIsReady(false)}>Non</button>
+                  </>
+                )}
+              >
+                Le produit est-il en mode READY (bien initialisé) ?
+              </ImpactMessage>
             )}
 
             {selectedSim && isReady === false && (
-              <div className="prompt">
-                <p style={{ margin: 0 }}>Le produit n'est pas bien initialisé.</p>
-                <div className="prompt-actions" style={{ marginTop: 8 }}>
-                  <button className="btn" onClick={resetAll}>Recommencer</button>
-                </div>
-              </div>
+              <ImpactMessage
+                variant="error"
+                title="Initialisation incomplète"
+                actions={<button className="btn" onClick={resetAll}>Recommencer</button>}
+              >
+                Le produit n'est pas bien initialisé.
+              </ImpactMessage>
             )}
 
             {selectedSim && isReady === true && phonieResult === null && (
-              <div className="prompt">
-                <p style={{ margin: 0 }}>Tester la Phonie et indiquer le résultat du test :</p>
-                <div className="prompt-actions" style={{ marginTop: 8 }}>
-                  <button className="btn" onClick={() => setPhonieResult('ok')}>Phonie OK</button>
-                  <button className="btn" onClick={() => setPhonieResult('ko')}>Phonie KO</button>
-                </div>
-              </div>
+              <ImpactMessage
+                variant="info"
+                title="Tester la Phonie"
+                actions={(
+                  <>
+                    <button className="btn" onClick={() => setPhonieResult('ok')}>Phonie OK</button>
+                    <button className="btn" onClick={() => setPhonieResult('ko')}>Phonie KO</button>
+                  </>
+                )}
+              >
+                Effectuez le test de Phonie et sélectionnez le résultat.
+              </ImpactMessage>
             )}
 
             {phonieResult && (
-              <div className={`result ${phonieResult === 'ok' ? 'ok' : 'ko'}`}>
-                {phonieResult === 'ok' ? 'Phonie: OK' : 'Échec du test'}
-              </div>
+              phonieResult === 'ok' ? (
+                <ImpactMessage variant="success" title="Phonie réussie">Phonie: OK</ImpactMessage>
+              ) : (
+                <ImpactMessage variant="error" title="Phonie échouée">Échec du test</ImpactMessage>
+              )
             )}
 
             {phonieResult === 'ko' && (
@@ -157,19 +171,26 @@ function Product({ productLabel, simSelectId }) {
             )}
 
             {selectedSim && isReady === true && phonieResult === 'ok' && batteryResult === null && (
-              <div className="prompt">
-                <p style={{ margin: 0 }}>Basculez sur la batterie et vérifiez si la LED s’allume. Indiquez le résultat :</p>
-                <div className="prompt-actions" style={{ marginTop: 8 }}>
-                  <button className="btn" onClick={() => setBatteryResult('ok')}>Bascule: OK</button>
-                  <button className="btn" onClick={() => setBatteryResult('ko')}>Bascule: KO</button>
-                </div>
-              </div>
+              <ImpactMessage
+                variant="warning"
+                title="Vérifier la LED en mode batterie"
+                actions={(
+                  <>
+                    <button className="btn" onClick={() => setBatteryResult('ok')}>Bascule: OK</button>
+                    <button className="btn" onClick={() => setBatteryResult('ko')}>Bascule: KO</button>
+                  </>
+                )}
+              >
+                Basculez sur la batterie et confirmez si la LED s’allume.
+              </ImpactMessage>
             )}
 
             {batteryResult && (
-              <div className={`result ${batteryResult === 'ok' ? 'ok' : 'ko'}`}>
-                {batteryResult === 'ok' ? 'Bascule batterie: OK' : 'Bascule batterie: Échec du test'}
-              </div>
+              batteryResult === 'ok' ? (
+                <ImpactMessage variant="success" title="Bascule batterie OK">Bascule batterie: OK</ImpactMessage>
+              ) : (
+                <ImpactMessage variant="error" title="Bascule batterie KO">Bascule batterie: Échec du test</ImpactMessage>
+              )
             )}
 
             {(batteryResult === 'ok' || batteryResult === 'ko') && (
