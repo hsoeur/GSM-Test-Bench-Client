@@ -91,6 +91,9 @@ function Product({ productLabel, simSelectId }) {
     <div className="panel">
       <div className="panel-header">
         <h2>{productLabel}</h2>
+        {serial && (
+          <span className="panel-subtitle">Code en test: {serial}</span>
+        )}
       </div>
       <div className="panel-body">
             <div style={{ marginBottom: 12 }}>
