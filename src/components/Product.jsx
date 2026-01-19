@@ -6,9 +6,11 @@ import ShapeDisplay from './ShapeDisplay.jsx'
 import ImpactMessage from './ImpactMessage.jsx'
 import { callGsm, hangupGsm } from '../services/gsmService.js'
 import { getManufacturingOrderByUid } from '../services/manufacturingOrderService.js'
-import { hasPreviousOperationOkStatus } from '../services/productTraceabilityService.js'
+import { hasPreviousOperationOkStatus, createProductTraceability } from '../services/productTraceabilityService.js'
+import { useOperator } from '../context/OperatorContext.jsx'
 
 function Product({ productLabel, simSelectId, currentOperationNumber }) {
+  const { operator } = useOperator()
   // Manufacturing order context
   const [labelScan, setLabelScan] = useState('')
   const [ofUid, setOfUid] = useState('')
@@ -17,6 +19,7 @@ function Product({ productLabel, simSelectId, currentOperationNumber }) {
   const [moLoading, setMoLoading] = useState(false)
   const [moError, setMoError] = useState('')
   const [prevOpOk, setPrevOpOk] = useState(null) // boolean | null
+  const [testStartTs, setTestStartTs] = useState(null)
 
   const [serial, setSerial] = useState('')
   const [showSimSelect, setShowSimSelect] = useState(false)
@@ -68,6 +71,7 @@ function Product({ productLabel, simSelectId, currentOperationNumber }) {
     setIsReady(null)
     setPhonieResult(null)
     setBatteryResult(null)
+    setTestStartTs(Date.now())
     setMoError('')
     setMoLoading(true)
     try {
@@ -152,6 +156,37 @@ function Product({ productLabel, simSelectId, currentOperationNumber }) {
     setProductUid('')
     setMoError('')
     setPrevOpOk(null)
+    setTestStartTs(null)
+  }
+
+  const submitAndReset = async (status) => {
+    try {
+      const machineUid = import.meta.env.VITE_MACHINE_UID || 'MO03A'
+      const manufacturingOrderUid = ofUid || (localStorage.getItem('current:manufacturingOrderUid') || '')
+      const payload = {
+        productUid: String(productUid || localStorage.getItem('current:productUid') || ''),
+        productSerialNumber: String(serial || localStorage.getItem('current:serialNumber') || ''),
+        productStatusUid: String(status || ''),
+        creationDate: new Date().toISOString(),
+        manufacturingOrderUid: String(manufacturingOrderUid || ''),
+        userUid: operator ? String(operator.userUid) : '',
+        cycleTime: (() => {
+          if (!testStartTs) return ''
+          const secs = (Date.now() - testStartTs) / 1000
+          return String(Number(secs.toFixed(1)))
+        })(),
+        operationNumber: currentOperationNumber != null ? String(currentOperationNumber) : '',
+        machineUid: String(machineUid),
+      }
+      // Only submit if we have minimal required fields
+      if (payload.productUid && payload.productSerialNumber && payload.manufacturingOrderUid) {
+        await createProductTraceability(payload)
+      }
+    } catch (_) {
+      // Swallow errors; proceed with reset as requested
+    } finally {
+      resetAll()
+    }
   }
 
   const stepsTotal = 5
@@ -392,7 +427,7 @@ function Product({ productLabel, simSelectId, currentOperationNumber }) {
             {prevOpOk === true && phonieResult === 'ko' && (
               <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
                 <button className="btn" onClick={() => setPhonieResult(null)}>Retester ce produit</button>
-                <button className="btn" onClick={resetAll}>Tester un autre produit</button>
+                <button className="btn" onClick={() => submitAndReset('KO')}>Tester un autre produit</button>
               </div>
             )}
 
@@ -421,7 +456,7 @@ function Product({ productLabel, simSelectId, currentOperationNumber }) {
 
             {prevOpOk === true && (batteryResult === 'ok' || batteryResult === 'ko') && (
               <div style={{ marginTop: 8 }}>
-                <button className="btn" onClick={resetAll}>Tester un autre produit</button>
+                <button className="btn" onClick={() => submitAndReset(batteryResult === 'ok' ? 'OK' : 'KO')}>Tester un autre produit</button>
                 
               </div>
             )}

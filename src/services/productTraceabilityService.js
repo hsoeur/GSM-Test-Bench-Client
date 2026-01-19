@@ -19,4 +19,16 @@ export async function hasPreviousOperationOkStatus(productUid, serialNumber, cur
   return { ok: res.ok, status: res.status, value, message: (text || '').trim() }
 }
 
-export default { hasPreviousOperationOkStatus }
+export async function createProductTraceability(payload) {
+  const url = ENDPOINTS.productTraceabilityCreate
+  if (!url || !payload) return { ok: false, status: 400 }
+  const res = await request(url, {
+    method: 'POST',
+    headers: { accept: 'text/plain', 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+    timeout: 5000,
+  })
+  return { ok: res.ok, status: res.status }
+}
+
+export default { hasPreviousOperationOkStatus, createProductTraceability }
