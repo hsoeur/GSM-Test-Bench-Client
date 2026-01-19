@@ -1,8 +1,38 @@
-// Lightweight HTTP client with timeout and JSON convenience
+// Lightweight HTTP client with timeout, console logging and JSON convenience
+
+let __reqCounter = 0
+
+function ts() {
+  return new Date().toISOString()
+}
+
+function safeToString(body) {
+  if (body == null) return ''
+  if (typeof body === 'string') return body
+  try {
+    return JSON.stringify(body)
+  } catch {
+    return '[unserializable body]'
+  }
+}
+
+function truncate(s, max = 1000) {
+  if (!s) return ''
+  return s.length > max ? `${s.slice(0, max)}…(${s.length} chars)` : s
+}
 
 export async function request(url, { method = 'GET', timeout = 4000, headers = {}, ...rest } = {}) {
   const controller = new AbortController()
-  const id = setTimeout(() => controller.abort(), timeout)
+  const toId = setTimeout(() => controller.abort(), timeout)
+  const reqId = ++__reqCounter
+
+  // Log request
+  try {
+    const bodyPreview = truncate(safeToString(rest?.body))
+    // eslint-disable-next-line no-console
+    console.log(`[HTTP ${reqId}] ➜ ${method} ${url} @ ${ts()}`, { headers, timeout, body: bodyPreview })
+  } catch {}
+
   try {
     const res = await fetch(url, {
       method,
@@ -10,9 +40,26 @@ export async function request(url, { method = 'GET', timeout = 4000, headers = {
       signal: controller.signal,
       ...rest,
     })
+
+    // Log response (status + body excerpt)
+    try {
+      const clone = res.clone()
+      const text = await clone.text()
+      const preview = truncate(text)
+      // eslint-disable-next-line no-console
+      console.log(`[HTTP ${reqId}] ⇦ ${res.status} ${res.ok ? 'OK' : 'ERR'} @ ${ts()}`, { body: preview })
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.warn(`[HTTP ${reqId}] ⇦ (response logging failed)`, String(e?.message || e))
+    }
+
     return res
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.error(`[HTTP ${reqId}] ✖ Error @ ${ts()}`, String(err?.message || err))
+    throw err
   } finally {
-    clearTimeout(id)
+    clearTimeout(toId)
   }
 }
 

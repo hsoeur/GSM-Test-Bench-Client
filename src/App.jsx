@@ -10,10 +10,12 @@ import { initGsm } from './services/gsmService'
 import OperatorAuth from './components/OperatorAuth.jsx'
 import { useOperator } from './context/OperatorContext.jsx'
 import ManufacturingOrderScanner from './components/ManufacturingOrderScanner.jsx'
+import OperationSelector from './components/OperationSelector.jsx'
 
 function App() {
   const { operator, login, logout } = useOperator()
   const [mo, setMo] = useState(null) // { uid, data }
+  const [operation, setOperation] = useState(null)
   const [gsmInitState, setGsmInitState] = useState('idle') // idle | pending | success | error
   const [gsmInitError, setGsmInitError] = useState(null)
   const didInitRef = useRef(false)
@@ -52,6 +54,8 @@ function App() {
     try {
       const raw = window.localStorage.getItem('ui-test-gsm:selectedMO')
       if (raw && !mo) setMo(JSON.parse(raw))
+      const rawOp = window.localStorage.getItem('ui-test-gsm:selectedOP')
+      if (rawOp && !operation) setOperation(JSON.parse(rawOp))
     } catch {}
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -62,6 +66,13 @@ function App() {
       else window.localStorage.removeItem('ui-test-gsm:selectedMO')
     } catch {}
   }, [mo])
+
+  useEffect(() => {
+    try {
+      if (operation) window.localStorage.setItem('ui-test-gsm:selectedOP', JSON.stringify(operation))
+      else window.localStorage.removeItem('ui-test-gsm:selectedOP')
+    } catch {}
+  }, [operation])
 
   const endpoints = useMemo(() => ([
     { id: 'data', label: 'Api Data', check: checkDataHealth, subIndicators: [
@@ -75,11 +86,13 @@ function App() {
 
   const handleAuthenticated = (op) => {
     setMo(null)
+    setOperation(null)
     login(op)
   }
 
   const handleLogout = () => {
     setMo(null)
+    setOperation(null)
     logout()
   }
 
@@ -98,8 +111,14 @@ function App() {
                 <span style={{ fontSize: 13, color: 'var(--muted)' }}>
                   OF: {mo ? (mo.data?.manufacturingOrderNumber || mo.uid) : '—'}
                 </span>
+                <span style={{ fontSize: 13, color: 'var(--muted)' }}>
+                  Opération: {operation ? `${operation.operationNumber} — ${operation.label}` : '—'}
+                </span>
                 {mo && (
                   <button className="btn-ghost" type="button" onClick={() => setMo(null)}>Changer OF</button>
+                )}
+                {operation && (
+                  <button className="btn-ghost" type="button" onClick={() => setOperation(null)}>Changer Opération</button>
                 )}
               </>
             )}
@@ -116,6 +135,10 @@ function App() {
       ) : !mo ? (
         <div className="center-screen">
           <ManufacturingOrderScanner onSelected={setMo} />
+        </div>
+      ) : !operation ? (
+        <div className="center-screen">
+          <OperationSelector productUid={mo?.data?.productUid} onSelected={setOperation} />
         </div>
       ) : (
         <>
