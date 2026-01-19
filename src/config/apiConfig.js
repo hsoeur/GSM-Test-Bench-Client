@@ -22,6 +22,11 @@ export const ENDPOINTS = {
   dataApiHealth: join(API_BASES.DATA, 'api/Health/Live'),
   dataDbHealth: join(API_BASES.DATA, 'api/Health/Database'),
   manufacturingOrderByUid: (uid) => join(API_BASES.MO, `api/ManufacturingOrder/GetManufacturingOrderByManufacturingOrderUid?manufacturingOrderUid=${encodeURIComponent(uid || '')}`),
+  productTraceabilityHasPrevOk: ({ productUid, serialNumber, currentOperationNumber = 55 } = {}) =>
+    join(
+      API_BASES.MO,
+      `api/ProductTraceability/HasPreviousOperationOkStatus?productUid=${encodeURIComponent(productUid || '')}&serialNumber=${encodeURIComponent(serialNumber || '')}&currentOperationNumber=${encodeURIComponent(currentOperationNumber)}`,
+    ),
 }
 
 export default { API_BASES, ENDPOINTS }

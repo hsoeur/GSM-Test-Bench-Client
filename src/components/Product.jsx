@@ -5,6 +5,7 @@ import SimSelector from './SimSelector.jsx'
 import ShapeDisplay from './ShapeDisplay.jsx'
 import ImpactMessage from './ImpactMessage.jsx'
 import { getManufacturingOrderByUid } from '../services/manufacturingOrderService.js'
+import { hasPreviousOperationOkStatus } from '../services/productTraceabilityService.js'
 
 function Product({ productLabel, simSelectId }) {
   // Manufacturing order context
@@ -14,6 +15,7 @@ function Product({ productLabel, simSelectId }) {
   const [productUid, setProductUid] = useState('')
   const [moLoading, setMoLoading] = useState(false)
   const [moError, setMoError] = useState('')
+  const [prevOpOk, setPrevOpOk] = useState(null) // boolean | null
 
   const [serial, setSerial] = useState('')
   const [showSimSelect, setShowSimSelect] = useState(false)
@@ -51,9 +53,9 @@ function Product({ productLabel, simSelectId }) {
     const ofPart = parts[2] || ''
     setSerialLabel(serialPart)
     setOfUid(ofPart)
-    // Use label SN as the working serial and reveal SIM selection
+    // Use label SN as the working serial; gate next steps until traceability ok
     setSerial(serialPart.toUpperCase())
-    setShowSimSelect(true)
+    setShowSimSelect(false)
     try {
       const saved = localStorage.getItem(simStorageKey) || ''
       setSelectedSim(saved)
@@ -70,6 +72,7 @@ function Product({ productLabel, simSelectId }) {
       if (!ok || !data) {
         setMoError(`Échec récupération OF (${status})`)
         setProductUid('')
+        setPrevOpOk(null)
       } else {
         setProductUid(String(data.productUid || ''))
         // Persist minimal context
@@ -78,10 +81,22 @@ function Product({ productLabel, simSelectId }) {
           localStorage.setItem('current:productUid', String(data.productUid || ''))
           localStorage.setItem('current:serialNumber', String(serialPart || ''))
         } catch {}
+
+        // Check previous operation status (operation 55)
+        const { ok: ok2, status: st2, value } = await hasPreviousOperationOkStatus(String(data.productUid || ''), String(serialPart || ''), 55)
+        if (!ok2) {
+          setMoError(`Échec vérification étape précédente (${st2})`)
+          setPrevOpOk(null)
+        } else {
+          setPrevOpOk(Boolean(value))
+          // Allow progressing only when previous op is OK
+          setShowSimSelect(Boolean(value))
+        }
       }
     } catch (e) {
       setMoError(String(e?.message || e))
       setProductUid('')
+      setPrevOpOk(null)
     } finally {
       setMoLoading(false)
     }
@@ -120,6 +135,7 @@ function Product({ productLabel, simSelectId }) {
     setSerialLabel('')
     setProductUid('')
     setMoError('')
+    setPrevOpOk(null)
   }
 
   const stepsTotal = 5
@@ -179,11 +195,27 @@ function Product({ productLabel, simSelectId }) {
               </ImpactMessage>
             )}
 
+            {prevOpOk === true && (
+              <ImpactMessage variant="success" title="Produit OK N-1">
+                Étape précédente validée. Vous pouvez continuer.
+              </ImpactMessage>
+            )}
+
+            {prevOpOk === false && (
+              <ImpactMessage
+                variant="error"
+                title="Produit non valide"
+                actions={<button className="btn" onClick={resetAll}>Recommencer</button>}
+              >
+                Produit non valide à l’étape de fabrication précédente.
+              </ImpactMessage>
+            )}
+
             <div style={{ marginBottom: 12 }}>
               <ProgressBar value={progressPct} label={`Avancement du test: ${progressPct}%`} />
             </div>
 
-            {showSimSelect && (
+            {prevOpOk === true && showSimSelect && (
               <SimSelector
                 id={simSelectId}
                 options={simOptions}
@@ -207,7 +239,7 @@ function Product({ productLabel, simSelectId }) {
               }
             />
 
-            {selectedSim && isReady === null && (
+            {prevOpOk === true && selectedSim && isReady === null && (
               <ImpactMessage
                 variant="info"
                 title="Confirmez l’état READY"
@@ -222,7 +254,7 @@ function Product({ productLabel, simSelectId }) {
               </ImpactMessage>
             )}
 
-            {selectedSim && isReady === false && (
+            {prevOpOk === true && selectedSim && isReady === false && (
               <ImpactMessage
                 variant="error"
                 title="Initialisation incomplète"
@@ -232,7 +264,7 @@ function Product({ productLabel, simSelectId }) {
               </ImpactMessage>
             )}
 
-            {selectedSim && isReady === true && phonieResult === null && (
+            {prevOpOk === true && selectedSim && isReady === true && phonieResult === null && (
               <ImpactMessage
                 variant="info"
                 title="Tester la Phonie"
@@ -247,7 +279,7 @@ function Product({ productLabel, simSelectId }) {
               </ImpactMessage>
             )}
 
-            {phonieResult && (
+            {prevOpOk === true && phonieResult && (
               phonieResult === 'ok' ? (
                 <ImpactMessage variant="success" title="Phonie réussie">Phonie: OK</ImpactMessage>
               ) : (
@@ -255,14 +287,14 @@ function Product({ productLabel, simSelectId }) {
               )
             )}
 
-            {phonieResult === 'ko' && (
+            {prevOpOk === true && phonieResult === 'ko' && (
               <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
                 <button className="btn" onClick={() => setPhonieResult(null)}>Retester ce produit</button>
                 <button className="btn" onClick={resetAll}>Tester un autre produit</button>
               </div>
             )}
 
-            {selectedSim && isReady === true && phonieResult === 'ok' && batteryResult === null && (
+            {prevOpOk === true && selectedSim && isReady === true && phonieResult === 'ok' && batteryResult === null && (
               <ImpactMessage
                 variant="warning"
                 title="Vérifier la LED en mode batterie"
@@ -277,7 +309,7 @@ function Product({ productLabel, simSelectId }) {
               </ImpactMessage>
             )}
 
-            {batteryResult && (
+            {prevOpOk === true && batteryResult && (
               batteryResult === 'ok' ? (
                 <ImpactMessage variant="success" title="Bascule batterie OK">Bascule batterie: OK</ImpactMessage>
               ) : (
@@ -285,7 +317,7 @@ function Product({ productLabel, simSelectId }) {
               )
             )}
 
-            {(batteryResult === 'ok' || batteryResult === 'ko') && (
+            {prevOpOk === true && (batteryResult === 'ok' || batteryResult === 'ko') && (
               <div style={{ marginTop: 8 }}>
                 <button className="btn" onClick={resetAll}>Tester un autre produit</button>
                 
