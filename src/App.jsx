@@ -7,8 +7,11 @@ import { ENDPOINTS } from './config/apiConfig'
 import { checkGsmHealth, checkDataHealth } from './services/healthService'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { initGsm } from './services/gsmService'
+import OperatorAuth from './components/OperatorAuth.jsx'
+import { useOperator } from './context/OperatorContext.jsx'
 
 function App() {
+  const { operator, login, logout } = useOperator()
   const [gsmInitState, setGsmInitState] = useState('idle') // idle | pending | success | error
   const [gsmInitError, setGsmInitError] = useState(null)
   const didInitRef = useRef(false)
@@ -58,8 +61,22 @@ function App() {
         <div className="brand-bar">
           <img src={logo} alt="Test GSM" className="brand-logo" />
           <div className="brand-name">Test GSM</div>
+          <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontSize: 13, color: 'var(--muted)' }}>
+              Opérateur: {operator ? `${operator.lastName} ${operator.firstName}` : '—'}
+            </span>
+            {operator && (
+              <button className="btn-ghost" type="button" onClick={logout}>Déconnexion</button>
+            )}
+          </div>
         </div>
       </header>
+      {!operator ? (
+        <div className="center-screen">
+          <OperatorAuth onAuthenticated={login} />
+        </div>
+      ) : (
+        <>
       {gsmInitState !== 'idle' && (
         gsmInitState === 'success' ? (
           <div style={{ padding: '12px 16px' }}>
@@ -97,6 +114,8 @@ function App() {
         )}
       </div>
       <ApiStatusFooter endpoints={endpoints} pollIntervalMs={10000} timeoutMs={4000} />
+        </>
+      )}
     </div>
   )
 }

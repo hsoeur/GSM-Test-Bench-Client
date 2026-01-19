@@ -30,6 +30,8 @@ export const ENDPOINTS = {
       API_BASES.MO,
       `api/ProductTraceability/HasPreviousOperationOkStatus?productUid=${encodeURIComponent(productUid || '')}&serialNumber=${encodeURIComponent(serialNumber || '')}&currentOperationNumber=${encodeURIComponent(currentOperationNumber)}`,
     ),
+  // Operators
+  operatorsCurrent: join(API_BASES.MO, 'api/Operator/GetCollectionCurrentOperator'),
 }
 
 export default { API_BASES, ENDPOINTS }

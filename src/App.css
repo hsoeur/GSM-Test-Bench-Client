@@ -355,3 +355,12 @@
 .mini-dot.na { background: #a8a8a8; }
 .detail-label { font-weight: 600; }
 .detail-value { margin-left: auto; opacity: 0.85; }
+
+/* Center a child both horizontally and vertically below header */
+.center-screen {
+	min-height: calc(100vh - 56px);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 16px;
+}
