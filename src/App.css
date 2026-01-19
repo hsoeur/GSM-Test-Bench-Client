@@ -62,6 +62,12 @@
 	background: var(--bg);
 }
 
+.split-view.disabled {
+	opacity: 0.45;
+	filter: grayscale(80%);
+	pointer-events: none;
+}
+
 /* Panel styling shared by ProductA/ProductB */
 .panel {
 	display: flex;

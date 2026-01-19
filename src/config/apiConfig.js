@@ -19,6 +19,7 @@ export const API_BASES = {
 
 export const ENDPOINTS = {
   gsmHealth: join(API_BASES.TEST_GSM, 'api/Gsm/health'),
+  gsmInit: join(API_BASES.TEST_GSM, 'api/Gsm/init'),
   dataApiHealth: join(API_BASES.DATA, 'api/Health/Live'),
   dataDbHealth: join(API_BASES.DATA, 'api/Health/Database'),
   manufacturingOrderByUid: (uid) => join(API_BASES.MO, `api/ManufacturingOrder/GetManufacturingOrderByManufacturingOrderUid?manufacturingOrderUid=${encodeURIComponent(uid || '')}`),
