@@ -22,6 +22,13 @@ export default defineConfig({
         secure: false,
         rewrite: (path) => path.replace(/^\/data-api/, ''),
       },
+      // Proxy for Manufacturing Order backend
+      '/mo-api': {
+        target: 'http://127.0.0.1:18080',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/mo-api/, ''),
+      },
     },
   },
 })

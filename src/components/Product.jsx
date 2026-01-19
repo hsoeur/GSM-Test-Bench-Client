@@ -4,8 +4,17 @@ import KeyboardScanner from './KeyboardScanner.jsx'
 import SimSelector from './SimSelector.jsx'
 import ShapeDisplay from './ShapeDisplay.jsx'
 import ImpactMessage from './ImpactMessage.jsx'
+import { getManufacturingOrderByUid } from '../services/manufacturingOrderService.js'
 
 function Product({ productLabel, simSelectId }) {
+  // Manufacturing order context
+  const [labelScan, setLabelScan] = useState('')
+  const [ofUid, setOfUid] = useState('')
+  const [serialLabel, setSerialLabel] = useState('')
+  const [productUid, setProductUid] = useState('')
+  const [moLoading, setMoLoading] = useState(false)
+  const [moError, setMoError] = useState('')
+
   const [serial, setSerial] = useState('')
   const [showSimSelect, setShowSimSelect] = useState(false)
   const [selectedSim, setSelectedSim] = useState('')
@@ -15,9 +24,12 @@ function Product({ productLabel, simSelectId }) {
 
   const simStorageKey = useMemo(() => `sim:last:${simSelectId}`,[simSelectId])
 
-  const validateSerial = useMemo(() => {
-    const re = /^[A-Z0-9]{6,20}$/
-    return (v) => re.test(v.toUpperCase())
+  // Validate label like "0505F ;100002;30000;71;07/01/2026"
+  const validateLabel = useMemo(() => {
+    return (v) => {
+      const parts = String(v).split(';').map((p) => p.trim()).filter(Boolean)
+      return parts.length >= 3 && /^\d+$/.test(parts[1]) && /^\d+$/.test(parts[2])
+    }
   }, [])
 
   const simOptions = useMemo(
@@ -30,11 +42,18 @@ function Product({ productLabel, simSelectId }) {
     [],
   )
 
-  const handleValid = (value) => {
-    const v = value.toUpperCase()
-    setSerial(v)
+  // Parse label and fetch Manufacturing Order details
+  const onLabelValid = async (value) => {
+    const raw = String(value)
+    setLabelScan(raw)
+    const parts = raw.split(';').map((p) => p.trim())
+    const serialPart = parts[1] || ''
+    const ofPart = parts[2] || ''
+    setSerialLabel(serialPart)
+    setOfUid(ofPart)
+    // Use label SN as the working serial and reveal SIM selection
+    setSerial(serialPart.toUpperCase())
     setShowSimSelect(true)
-    // Restore last SIM used for this product if available
     try {
       const saved = localStorage.getItem(simStorageKey) || ''
       setSelectedSim(saved)
@@ -44,6 +63,28 @@ function Product({ productLabel, simSelectId }) {
     setIsReady(null)
     setPhonieResult(null)
     setBatteryResult(null)
+    setMoError('')
+    setMoLoading(true)
+    try {
+      const { ok, data, status } = await getManufacturingOrderByUid(ofPart)
+      if (!ok || !data) {
+        setMoError(`Échec récupération OF (${status})`)
+        setProductUid('')
+      } else {
+        setProductUid(String(data.productUid || ''))
+        // Persist minimal context
+        try {
+          localStorage.setItem('current:manufacturingOrderUid', String(data.manufacturingOrderUid || ofPart))
+          localStorage.setItem('current:productUid', String(data.productUid || ''))
+          localStorage.setItem('current:serialNumber', String(serialPart || ''))
+        } catch {}
+      }
+    } catch (e) {
+      setMoError(String(e?.message || e))
+      setProductUid('')
+    } finally {
+      setMoLoading(false)
+    }
   }
 
   useEffect(() => {
@@ -74,6 +115,11 @@ function Product({ productLabel, simSelectId }) {
     setIsReady(null)
     setPhonieResult(null)
     setBatteryResult(null)
+    setLabelScan('')
+    setOfUid('')
+    setSerialLabel('')
+    setProductUid('')
+    setMoError('')
   }
 
   const stepsTotal = 5
@@ -85,7 +131,7 @@ function Product({ productLabel, simSelectId }) {
     (batteryResult !== null ? 1 : 0)
   )
   const progressPct = Math.round((stepsDone / stepsTotal) * 100)
-  console.log({ stepsDone, progressPct }) 
+  console.log({ stepsDone, progressPct })
 
 
   return (
@@ -97,18 +143,45 @@ function Product({ productLabel, simSelectId }) {
         )}
       </div>  
       <div className="panel-body">
-            <div style={{ marginBottom: 12 }}>
-              <ProgressBar value={progressPct} label={`Avancement du test: ${progressPct}%`} />
-            </div>
+            {/* Label scan for Manufacturing Order */}
             <KeyboardScanner
-              title="Scanner Numéro de série"
+              title="Scanne Etiquette de Lot"
               showCaptureButton={false}
-              validate={validateSerial}
-              onValid={handleValid}
-              invalidMessage="Veuillez entrer un numéro de série valide"
+              validate={validateLabel}
+              onValid={onLabelValid}
+              invalidMessage="Étiquette invalide (format attendu avec points-virgules)"
               onScan={() => {}}
               showLastResult={false}
             />
+
+            {(productUid || serialLabel || ofUid) && (
+              <ImpactMessage
+                variant={moError ? 'error' : 'info'}
+                title={moError ? 'OF introuvable' : 'Contexte OF en cours'}
+                actions={(
+                  <>
+                    {moLoading ? (
+                      <span>Chargement…</span>
+                    ) : (
+                      <button className="btn" onClick={resetAll}>Effacer</button>
+                    )}
+                  </>
+                )}
+              >
+                <div style={{ display: 'grid', gridTemplateColumns: '140px 1fr', gap: '6px 12px' }}>
+                  <span>Code produit:</span>
+                  <strong>{productUid || '—'}</strong>
+                  <span>SN:</span>
+                  <strong>{serialLabel || '—'}</strong>
+                  <span>Numéro d’OF:</span>
+                  <strong>{ofUid || '—'}</strong>
+                </div>
+              </ImpactMessage>
+            )}
+
+            <div style={{ marginBottom: 12 }}>
+              <ProgressBar value={progressPct} label={`Avancement du test: ${progressPct}%`} />
+            </div>
 
             {showSimSelect && (
               <SimSelector

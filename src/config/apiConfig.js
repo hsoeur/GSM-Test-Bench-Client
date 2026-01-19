@@ -14,12 +14,14 @@ export const API_BASES = {
   // In dev, defaults use Vite proxy prefixes; override with absolute URLs in env for prod.
   TEST_GSM: withTrailingSlash(import.meta.env.VITE_API_TEST_GSM_BASE || '/gsm-api'),
   DATA: withTrailingSlash(import.meta.env.VITE_API_DATA_BASE || '/data-api'),
+  MO: withTrailingSlash(import.meta.env.VITE_API_MO_BASE || '/mo-api'),
 }
 
 export const ENDPOINTS = {
   gsmHealth: join(API_BASES.TEST_GSM, 'api/Gsm/health'),
   dataApiHealth: join(API_BASES.DATA, 'api/Health/Live'),
   dataDbHealth: join(API_BASES.DATA, 'api/Health/Database'),
+  manufacturingOrderByUid: (uid) => join(API_BASES.MO, `api/ManufacturingOrder/GetManufacturingOrderByManufacturingOrderUid?manufacturingOrderUid=${encodeURIComponent(uid || '')}`),
 }
 
 export default { API_BASES, ENDPOINTS }
