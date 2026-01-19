@@ -4,6 +4,7 @@ import KeyboardScanner from './KeyboardScanner.jsx'
 import SimSelector from './SimSelector.jsx'
 import ShapeDisplay from './ShapeDisplay.jsx'
 import ImpactMessage from './ImpactMessage.jsx'
+import { callGsm, hangupGsm } from '../services/gsmService.js'
 import { getManufacturingOrderByUid } from '../services/manufacturingOrderService.js'
 import { hasPreviousOperationOkStatus } from '../services/productTraceabilityService.js'
 
@@ -23,6 +24,8 @@ function Product({ productLabel, simSelectId }) {
   const [isReady, setIsReady] = useState(null)
   const [phonieResult, setPhonieResult] = useState(null) // 'ok' | 'ko' | null
   const [batteryResult, setBatteryResult] = useState(null) // 'ok' | 'ko' | null
+  const [callStatus, setCallStatus] = useState('idle') // idle | pending | success | error
+  const [callError, setCallError] = useState('')
 
   const simStorageKey = useMemo(() => `sim:last:${simSelectId}`,[simSelectId])
 
@@ -130,6 +133,8 @@ function Product({ productLabel, simSelectId }) {
     setIsReady(null)
     setPhonieResult(null)
     setBatteryResult(null)
+    setCallStatus('idle')
+    setCallError('')
     setLabelScan('')
     setOfUid('')
     setSerialLabel('')
@@ -245,7 +250,32 @@ function Product({ productLabel, simSelectId }) {
                 title="Confirmez l’état READY"
                 actions={(
                   <>
-                    <button className="btn" onClick={() => setIsReady(true)}>Oui</button>
+                    <button
+                      className="btn"
+                      onClick={() => {
+                        // Proceed immediately without awaiting the endpoint
+                        setIsReady(true)
+                        // Fire-and-forget the call; update status when it returns
+                        if (callStatus !== 'pending') {
+                          setCallStatus('pending')
+                          setCallError('')
+                          callGsm({ phoneNumber: '+33619228309', audioOk: true })
+                            .then(({ ok, status }) => {
+                              if (ok) setCallStatus('success')
+                              else {
+                                setCallStatus('error')
+                                setCallError(`Échec de l'appel (HTTP ${status || '—'})`)
+                              }
+                            })
+                            .catch(() => {
+                              setCallStatus('error')
+                              setCallError("Impossible d'initier l'appel via le modem GSM.")
+                            })
+                        }
+                      }}
+                    >
+                      Oui
+                    </button>
                     <button className="btn" onClick={() => setIsReady(false)}>Non</button>
                   </>
                 )}
@@ -264,14 +294,70 @@ function Product({ productLabel, simSelectId }) {
               </ImpactMessage>
             )}
 
+            {prevOpOk === true && callStatus === 'error' && (
+              <ImpactMessage
+                variant="error"
+                title="Échec de démarrage de l'appel"
+                actions={(
+                  <>
+                    <button
+                      className="btn"
+                      disabled={callStatus === 'pending'}
+                      onClick={async () => {
+                        if (callStatus === 'pending') return
+                        setCallStatus('pending')
+                        setCallError('')
+                        const { ok, status } = await callGsm({ phoneNumber: '+33619228309', audioOk: true })
+                        if (ok) {
+                          setCallStatus('success')
+                          setIsReady(true)
+                        } else {
+                          setCallStatus('error')
+                          setCallError(`Échec de l'appel (HTTP ${status || '—'})`)
+                        }
+                      }}
+                    >
+                      Réessayer l'appel
+                    </button>
+                  </>
+                )}
+              >
+                {callError || "Impossible d'initier l'appel via le modem GSM."}
+              </ImpactMessage>
+            )}
+
+            {prevOpOk === true && callStatus === 'success' && phonieResult === null && (
+              <ImpactMessage variant="info" title="Appel lancé">
+                L'appel a été initié. Procédez au test de phonie puis sélectionnez le résultat.
+              </ImpactMessage>
+            )}
+
             {prevOpOk === true && selectedSim && isReady === true && phonieResult === null && (
               <ImpactMessage
                 variant="info"
                 title="Tester la Phonie"
                 actions={(
                   <>
-                    <button className="btn" onClick={() => setPhonieResult('ok')}>Phonie OK</button>
-                    <button className="btn" onClick={() => setPhonieResult('ko')}>Phonie KO</button>
+                    <button
+                      className="btn"
+                      onClick={() => {
+                        setPhonieResult('ok')
+                        // Fire-and-forget hangup request; do not block UI
+                        hangupGsm().catch(() => {})
+                      }}
+                    >
+                      Phonie OK
+                    </button>
+                    <button
+                      className="btn"
+                      onClick={() => {
+                        setPhonieResult('ko')
+                        // Fire-and-forget hangup request; do not block UI
+                        hangupGsm().catch(() => {})
+                      }}
+                    >
+                      Phonie KO
+                    </button>
                   </>
                 )}
               >
