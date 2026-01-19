@@ -9,9 +9,11 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { initGsm } from './services/gsmService'
 import OperatorAuth from './components/OperatorAuth.jsx'
 import { useOperator } from './context/OperatorContext.jsx'
+import ManufacturingOrderScanner from './components/ManufacturingOrderScanner.jsx'
 
 function App() {
   const { operator, login, logout } = useOperator()
+  const [mo, setMo] = useState(null) // { uid, data }
   const [gsmInitState, setGsmInitState] = useState('idle') // idle | pending | success | error
   const [gsmInitError, setGsmInitError] = useState(null)
   const didInitRef = useRef(false)
@@ -45,6 +47,22 @@ function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  // Optional: persist MO in localStorage for convenience during a session
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem('ui-test-gsm:selectedMO')
+      if (raw && !mo) setMo(JSON.parse(raw))
+    } catch {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  useEffect(() => {
+    try {
+      if (mo) window.localStorage.setItem('ui-test-gsm:selectedMO', JSON.stringify(mo))
+      else window.localStorage.removeItem('ui-test-gsm:selectedMO')
+    } catch {}
+  }, [mo])
+
   const endpoints = useMemo(() => ([
     { id: 'data', label: 'Api Data', check: checkDataHealth, subIndicators: [
       { key: 'database', label: 'MySQL' },
@@ -54,6 +72,16 @@ function App() {
       { key: 'modemOk', label: 'Modem Gsm' },
     ] },
   ]), [])
+
+  const handleAuthenticated = (op) => {
+    setMo(null)
+    login(op)
+  }
+
+  const handleLogout = () => {
+    setMo(null)
+    logout()
+  }
 
   return (
     <div className="app">
@@ -66,14 +94,28 @@ function App() {
               Opérateur: {operator ? `${operator.lastName} ${operator.firstName}` : '—'}
             </span>
             {operator && (
-              <button className="btn-ghost" type="button" onClick={logout}>Déconnexion</button>
+              <>
+                <span style={{ fontSize: 13, color: 'var(--muted)' }}>
+                  OF: {mo ? (mo.data?.manufacturingOrderNumber || mo.uid) : '—'}
+                </span>
+                {mo && (
+                  <button className="btn-ghost" type="button" onClick={() => setMo(null)}>Changer OF</button>
+                )}
+              </>
+            )}
+            {operator && (
+              <button className="btn-ghost" type="button" onClick={handleLogout}>Déconnexion</button>
             )}
           </div>
         </div>
       </header>
       {!operator ? (
         <div className="center-screen">
-          <OperatorAuth onAuthenticated={login} />
+          <OperatorAuth onAuthenticated={handleAuthenticated} />
+        </div>
+      ) : !mo ? (
+        <div className="center-screen">
+          <ManufacturingOrderScanner onSelected={setMo} />
         </div>
       ) : (
         <>
