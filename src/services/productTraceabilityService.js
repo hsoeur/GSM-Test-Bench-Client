@@ -1,7 +1,7 @@
 import { ENDPOINTS } from '../config/apiConfig.js'
 import { request } from './http.js'
 
-export async function hasPreviousOperationOkStatus(productUid, serialNumber, currentOperationNumber = 55) {
+export async function hasPreviousOperationOkStatus(productUid, serialNumber, currentOperationNumber) {
   if (!productUid || !serialNumber) return { ok: false, status: 400, value: null }
   const url = typeof ENDPOINTS.productTraceabilityHasPrevOk === 'function'
     ? ENDPOINTS.productTraceabilityHasPrevOk({ productUid, serialNumber, currentOperationNumber })
@@ -16,7 +16,7 @@ export async function hasPreviousOperationOkStatus(productUid, serialNumber, cur
     text = await res.text()
   } catch (_) {}
   const value = String(text).trim().toLowerCase() === 'true'
-  return { ok: res.ok, status: res.status, value }
+  return { ok: res.ok, status: res.status, value, message: (text || '').trim() }
 }
 
 export default { hasPreviousOperationOkStatus }

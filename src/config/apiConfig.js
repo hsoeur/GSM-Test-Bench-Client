@@ -25,10 +25,10 @@ export const ENDPOINTS = {
   dataApiHealth: join(API_BASES.DATA, 'api/Health/Live'),
   dataDbHealth: join(API_BASES.DATA, 'api/Health/Database'),
   manufacturingOrderByUid: (uid) => join(API_BASES.MO, `api/ManufacturingOrder/GetManufacturingOrderByManufacturingOrderUid?manufacturingOrderUid=${encodeURIComponent(uid || '')}`),
-  productTraceabilityHasPrevOk: ({ productUid, serialNumber, currentOperationNumber = 55 } = {}) =>
+  productTraceabilityHasPrevOk: ({ productUid, serialNumber, currentOperationNumber } = {}) =>
     join(
       API_BASES.MO,
-      `api/ProductTraceability/HasPreviousOperationOkStatus?productUid=${encodeURIComponent(productUid || '')}&serialNumber=${encodeURIComponent(serialNumber || '')}&currentOperationNumber=${encodeURIComponent(currentOperationNumber)}`,
+      `api/ProductTraceability/HasPreviousOperationOkStatus?productUid=${encodeURIComponent(productUid || '')}&serialNumber=${encodeURIComponent(serialNumber || '')}&currentOperationNumber=${encodeURIComponent(currentOperationNumber ?? '')}`,
     ),
   operationsByProductUid: (productUid) => join(API_BASES.MO, `api/Operation/GetCollectionOperationBasic?productUid=${encodeURIComponent(productUid || '')}`),
   // Operators

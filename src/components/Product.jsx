@@ -8,7 +8,7 @@ import { callGsm, hangupGsm } from '../services/gsmService.js'
 import { getManufacturingOrderByUid } from '../services/manufacturingOrderService.js'
 import { hasPreviousOperationOkStatus } from '../services/productTraceabilityService.js'
 
-function Product({ productLabel, simSelectId }) {
+function Product({ productLabel, simSelectId, currentOperationNumber }) {
   // Manufacturing order context
   const [labelScan, setLabelScan] = useState('')
   const [ofUid, setOfUid] = useState('')
@@ -85,10 +85,21 @@ function Product({ productLabel, simSelectId }) {
           localStorage.setItem('current:serialNumber', String(serialPart || ''))
         } catch {}
 
-        // Check previous operation status (operation 55)
-        const { ok: ok2, status: st2, value } = await hasPreviousOperationOkStatus(String(data.productUid || ''), String(serialPart || ''), 55)
+        // Check previous operation status using selected operation number (may be empty)
+        const { ok: ok2, status: st2, value, message } = await hasPreviousOperationOkStatus(
+          String(data.productUid || ''),
+          String(serialPart || ''),
+          currentOperationNumber,
+        )
         if (!ok2) {
-          setMoError(`Échec vérification étape précédente (${st2})`)
+          const serverMsg = (message || '').trim()
+          if (serverMsg) {
+            setMoError(serverMsg)
+          } else if (st2 === 404) {
+            setMoError("Aucune traçabilité trouvée pour l'opération précédente.")
+          } else {
+            setMoError(`Échec vérification étape précédente (${st2})`)
+          }
           setPrevOpOk(null)
         } else {
           setPrevOpOk(Boolean(value))
@@ -178,7 +189,7 @@ function Product({ productLabel, simSelectId }) {
             {(productUid || serialLabel || ofUid) && (
               <ImpactMessage
                 variant={moError ? 'error' : 'info'}
-                title={moError ? 'OF introuvable' : 'Contexte OF en cours'}
+                title={moError ? 'Vérification étape précédente' : 'Contexte OF en cours'}
                 actions={(
                   <>
                     {moLoading ? (
@@ -189,6 +200,11 @@ function Product({ productLabel, simSelectId }) {
                   </>
                 )}
               >
+                {moError && (
+                  <div style={{ marginBottom: 8 }}>
+                    {moError}
+                  </div>
+                )}
                 <div style={{ display: 'grid', gridTemplateColumns: '140px 1fr', gap: '6px 12px' }}>
                   <span>Code produit:</span>
                   <strong>{productUid || '—'}</strong>

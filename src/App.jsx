@@ -167,8 +167,8 @@ function App() {
       )}
       <div className="shape-container">
         <main className={`split-view ${gsmInitState === 'success' ? '' : 'disabled'}`}>
-          <Product productLabel="Product A" simSelectId="simSelectA" />
-          <Product productLabel="Product B" simSelectId="simSelectB" />
+          <Product productLabel="Product A" simSelectId="simSelectA" currentOperationNumber={operation?.operationNumber} />
+          <Product productLabel="Product B" simSelectId="simSelectB" currentOperationNumber={operation?.operationNumber} />
         </main>
         {gsmInitState !== 'success' && (
           <div className="shape-overlay">
