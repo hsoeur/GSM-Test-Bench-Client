@@ -4,8 +4,19 @@ import ApiStatusFooter from './components/ApiStatusFooter.jsx'
 import logo from './assets/logo.jpg'
 import { ENDPOINTS } from './config/apiConfig'
 import { checkGsmHealth, checkDataHealth } from './services/healthService'
+import { useMemo } from 'react'
 
 function App() {
+  const endpoints = useMemo(() => ([
+    { id: 'data', label: 'Api Data', check: checkDataHealth, subIndicators: [
+      { key: 'database', label: 'MySQL' },
+    ] },
+    { id: 'test', label: 'Api Test Gsm', check: checkGsmHealth, subIndicators: [
+      { key: 'portOpen', label: 'COM' },
+      { key: 'modemOk', label: 'Modem Gsm' },
+    ] },
+  ]), [])
+
   return (
     <div className="app">
       <header className="brand-header">
@@ -18,19 +29,7 @@ function App() {
         <Product productLabel="Product A" simSelectId="simSelectA" />
         <Product productLabel="Product B" simSelectId="simSelectB" />
       </main>
-      <ApiStatusFooter
-        endpoints={[
-          { id: 'data', label: 'API DATA', check: checkDataHealth, subIndicators: [
-            { key: 'database', label: 'Base' },
-          ] },
-          { id: 'test', label: 'API TEST GSM', check: checkGsmHealth, subIndicators: [
-            { key: 'portOpen', label: 'Port' },
-            { key: 'modemOk', label: 'Modem' },
-          ] },
-        ]}
-        pollIntervalMs={10000}
-        timeoutMs={4000}
-      />
+      <ApiStatusFooter endpoints={endpoints} pollIntervalMs={10000} timeoutMs={4000} />
     </div>
   )
 }

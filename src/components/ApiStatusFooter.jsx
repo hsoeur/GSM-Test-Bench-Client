@@ -156,6 +156,51 @@ export default function ApiStatusFooter({
       }
     })
     await Promise.all(checks)
+    // Human-readable console summary
+    try {
+      const stateLabel = (s) => (s === 'ok' ? 'OK' : s === 'ko' ? 'KO' : s === 'pending' ? 'EN COURS' : 'N/A')
+      const boolLabel = (v) => (v === true ? 'OK' : v === false ? 'KO' : '—')
+      if (debug) {
+        // Build friendly output based on known endpoints/keys
+        const dataState = stateLabel(newStates['data'])
+        const dataApi = boolLabel(newDetails['data']?.api)
+        const dataDb = boolLabel(newDetails['data']?.database)
+
+        const gsmState = stateLabel(newStates['test'])
+        const gsmCom = boolLabel(newDetails['test']?.portOpen)
+        const gsmModem = boolLabel(newDetails['test']?.modemOk)
+
+        // Use console groups for readability
+        // eslint-disable-next-line no-console
+        console.group('[Statut APIs]')
+        // eslint-disable-next-line no-console
+        console.info(`Dernier contrôle: ${new Date().toLocaleTimeString()}`)
+        // eslint-disable-next-line no-console
+        console.group('Api Data')
+        // eslint-disable-next-line no-console
+        console.info(`Api Data: ${dataState}`)
+        // eslint-disable-next-line no-console
+        console.info(`API (requête 1): ${dataApi}`)
+        // eslint-disable-next-line no-console
+        console.info(`MySQL (requête 2): ${dataDb}`)
+        // eslint-disable-next-line no-console
+        console.groupEnd()
+        // eslint-disable-next-line no-console
+        console.group('Api Test Gsm')
+        // eslint-disable-next-line no-console
+        console.info(`Api Test Gsm: ${gsmState}`)
+        // eslint-disable-next-line no-console
+        console.info(`COM: ${gsmCom}`)
+        // eslint-disable-next-line no-console
+        console.info(`Modem Gsm: ${gsmModem}`)
+        // eslint-disable-next-line no-console
+        console.groupEnd()
+        // eslint-disable-next-line no-console
+        console.groupEnd()
+      }
+    } catch (_) {
+      // ignore logging errors
+    }
     setStates(newStates)
     setDetails(newDetails)
     setLastChecked(new Date())
@@ -247,11 +292,11 @@ function labelForKey(key) {
     case 'api':
       return 'API'
     case 'portOpen':
-      return 'Port'
+      return 'COM'
     case 'modemOk':
-      return 'Modem'
+      return 'Modem Gsm'
     case 'database':
-      return 'Base'
+      return 'MySQL'
     default:
       return key
   }

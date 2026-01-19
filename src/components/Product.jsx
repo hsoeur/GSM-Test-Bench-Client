@@ -85,6 +85,7 @@ function Product({ productLabel, simSelectId }) {
     (batteryResult !== null ? 1 : 0)
   )
   const progressPct = Math.round((stepsDone / stepsTotal) * 100)
+  console.log({ stepsDone, progressPct }) 
 
 
   return (
@@ -94,7 +95,7 @@ function Product({ productLabel, simSelectId }) {
         {serial && (
           <span className="panel-subtitle">Code en test: {serial}</span>
         )}
-      </div>
+      </div>  
       <div className="panel-body">
             <div style={{ marginBottom: 12 }}>
               <ProgressBar value={progressPct} label={`Avancement du test: ${progressPct}%`} />
@@ -214,6 +215,7 @@ function Product({ productLabel, simSelectId }) {
             {(batteryResult === 'ok' || batteryResult === 'ko') && (
               <div style={{ marginTop: 8 }}>
                 <button className="btn" onClick={resetAll}>Tester un autre produit</button>
+                
               </div>
             )}
       </div>
