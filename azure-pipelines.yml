@@ -1,0 +1,86 @@
+trigger:
+- main
+
+pool:
+  name: Default
+  demands:
+   - agent.name -equals VM-DEVOPS
+
+variables:
+  BUILD_CONFIGURATION: 'Release'
+  IMAGE_NAME: 'ui_testgsm_image'
+  SERVER_USER: 'adminprod'  
+  SERVER_IP: '192.168.1.104'  
+  SERVER_PATH: 'C:\Deploy\containers\ui_testgsm_container'  
+  CONTAINER_NAME: 'ui_testgsm_container'
+  SSH_PASSWORD: 'Paris2024JO*'  # Variable secrète stockée dans Azure DevOps
+  APP_PORT: '8015'  # Port d'écoute de l'API
+
+
+stages:
+- stage: Build
+  displayName: "🔨 Build Docker Image"
+  jobs:
+  - job: Build
+    displayName: "🐳 Build Docker"
+    steps:
+    - script: |
+        echo "🏗️ Construction de l'image Docker..."
+        docker build -t $(IMAGE_NAME):latest -f Dockerfile .
+      displayName: "🐳 Build Docker"
+
+    - script: |
+        echo "📦 Sauvegarde de l'image Docker en fichier..."
+        docker save $(IMAGE_NAME):latest -o $(IMAGE_NAME).tar
+      displayName: "📦 Sauvegarde en fichier"
+
+    - task: PublishBuildArtifacts@1
+      displayName: "📤 Upload de l'image dans Azure DevOps"
+      inputs:
+        pathToPublish: "$(IMAGE_NAME).tar"
+        artifactName: "docker-image"
+
+- stage: Deploy
+  displayName: "🚀 Déploiement sur 192.168.1.104"
+  dependsOn: Build
+  jobs:
+  - job: Deploy
+    displayName: "📡 Déploiement SSH"
+    steps:
+    - task: DownloadBuildArtifacts@0
+      displayName: "📥 Télécharger l'image depuis Azure DevOps"
+      inputs:
+        buildType: 'current'
+        artifactName: 'docker-image'
+        downloadPath: '$(Pipeline.Workspace)'
+
+    - script: |
+        echo "🔌 Connexion SSH et transfert de l'image..."
+        echo $(SSH_PASSWORD) | plink -batch -pw $(SSH_PASSWORD) $(SERVER_USER)@$(SERVER_IP) "mkdir -p $(SERVER_PATH)"
+        echo $(SSH_PASSWORD) | pscp -batch -pw $(SSH_PASSWORD) $(Pipeline.Workspace)/docker-image/$(IMAGE_NAME).tar $(SERVER_USER)@$(SERVER_IP):$(SERVER_PATH)/
+      displayName: "📡 Transfert de l'image Docker"
+
+    - script: |
+        echo "🛑 Arrêt du conteneur..."
+        echo $(SSH_PASSWORD) | plink -batch -pw $(SSH_PASSWORD) $(SERVER_USER)@$(SERVER_IP) "docker stop $(CONTAINER_NAME) || exit 0"
+      displayName: "🛑 Arrêter le conteneur en cours"
+
+    - script: |
+        echo "🗑️ Suppression du conteneur..."
+        echo $(SSH_PASSWORD) | plink -batch -pw $(SSH_PASSWORD) $(SERVER_USER)@$(SERVER_IP) "docker rm $(CONTAINER_NAME) || exit 0"
+      displayName: "🗑️ Supprimer le conteneur existant"
+
+    - script: |
+        echo "🔥 Suppression de l'ancienne image Docker..."
+        echo $(SSH_PASSWORD) | plink -batch -pw $(SSH_PASSWORD) $(SERVER_USER)@$(SERVER_IP) "docker rmi $(IMAGE_NAME):latest || exit 0"
+      displayName: "🔥 Supprimer l'ancienne image Docker"
+
+    - script: |
+        echo "📦 Chargement de la nouvelle image Docker..."
+        echo $(SSH_PASSWORD) | plink -batch -pw $(SSH_PASSWORD) $(SERVER_USER)@$(SERVER_IP) "docker load -i $(SERVER_PATH)/$(IMAGE_NAME).tar"
+      displayName: "📦 Charger la nouvelle image Docker"
+
+    - script: |
+        echo "🚀 Déploiement du nouveau conteneur..."
+        echo $(SSH_PASSWORD) | plink -batch -pw $(SSH_PASSWORD) $(SERVER_USER)@$(SERVER_IP) "docker run -d --name $(CONTAINER_NAME) --restart unless-stopped -p $(APP_PORT):80 $(IMAGE_NAME):latest"
+      displayName: "🚀 Démarrer le nouveau conteneur"
