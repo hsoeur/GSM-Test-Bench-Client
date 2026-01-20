@@ -12,8 +12,10 @@ const join = (base, path) => {
 
 export const API_BASES = {
   // In dev, defaults use Vite proxy prefixes; override with absolute URLs in env for prod.
-  TEST_GSM: withTrailingSlash(import.meta.env.VITE_API_TEST_GSM_BASE || '/gsm-api'),
-  DATA: withTrailingSlash(import.meta.env.VITE_API_DATA_BASE || '/data-api'),
+  // Hardcoded TEST GSM API base (no .env)
+  TEST_GSM: withTrailingSlash('http://localhost:5001'),
+  // Hardcoded DATA API base as requested (no .env)
+  DATA: withTrailingSlash('http://192.168.1.104:7000'),
   MO: withTrailingSlash(import.meta.env.VITE_API_MO_BASE || '/mo-api'),
 }
 
