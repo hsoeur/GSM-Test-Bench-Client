@@ -16,7 +16,8 @@ export const API_BASES = {
   TEST_GSM: withTrailingSlash('http://localhost:5001'),
   // Hardcoded DATA API base as requested (no .env)
   DATA: withTrailingSlash('http://192.168.1.104:7000'),
-  MO: withTrailingSlash(import.meta.env.VITE_API_MO_BASE || '/mo-api'),
+  // Hardcoded Manufacturing Order API base (no .env, no '/mo-api')
+  MO: withTrailingSlash('http://192.168.1.104:7000'),
 }
 
 export const ENDPOINTS = {
