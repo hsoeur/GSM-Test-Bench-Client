@@ -8,9 +8,14 @@ import { callGsm, hangupGsm } from '../services/gsmService.js'
 import { getManufacturingOrderByUid } from '../services/manufacturingOrderService.js'
 import { hasPreviousOperationOkStatus, createProductTraceability } from '../services/productTraceabilityService.js'
 import { useOperator } from '../context/OperatorContext.jsx'
+import { getSimCards, toSimOption } from '../services/simCardService.js'
 
 function Product({ productLabel, simSelectId, currentOperationNumber }) {
   const { operator } = useOperator()
+  const STATUS_UID = useMemo(() => ({
+    OK: import.meta.env.VITE_PRODUCT_STATUS_OK_UID || 'OK',
+    KO: import.meta.env.VITE_PRODUCT_STATUS_KO_UID || 'KO',
+  }), [])
   // Manufacturing order context
   const [labelScan, setLabelScan] = useState('')
   const [ofUid, setOfUid] = useState('')
@@ -24,6 +29,9 @@ function Product({ productLabel, simSelectId, currentOperationNumber }) {
   const [serial, setSerial] = useState('')
   const [showSimSelect, setShowSimSelect] = useState(false)
   const [selectedSim, setSelectedSim] = useState('')
+  const [simOptions, setSimOptions] = useState([])
+  const [simList, setSimList] = useState([])
+  const [simError, setSimError] = useState('')
   const [isReady, setIsReady] = useState(null)
   const [phonieResult, setPhonieResult] = useState(null) // 'ok' | 'ko' | null
   const [batteryResult, setBatteryResult] = useState(null) // 'ok' | 'ko' | null
@@ -40,15 +48,43 @@ function Product({ productLabel, simSelectId, currentOperationNumber }) {
     }
   }, [])
 
-  const simOptions = useMemo(
-    () => [
-      { value: 'SIM-01', label: 'SIM 01 — Orange' },
-      { value: 'SIM-02', label: 'SIM 02 — SFR' },
-      { value: 'SIM-03', label: 'SIM 03 — Bouygues' },
-      { value: 'SIM-04', label: 'SIM 04 — Free' },
-    ],
-    [],
-  )
+  // Fetch SIM cards once on mount
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      try {
+        setSimError('')
+        const { ok, status, data } = await getSimCards(5000)
+        if (!ok) {
+          setSimError(`Échec de récupération des SIM (HTTP ${status || '—'})`)
+          if (!cancelled) {
+            setSimOptions([])
+            setSimList([])
+          }
+        } else {
+          const list = Array.isArray(data) ? data : []
+          const opts = list.map(toSimOption)
+          if (!cancelled) {
+            setSimOptions(opts)
+            setSimList(list)
+          }
+        }
+      } catch (e) {
+        setSimError("Impossible de récupérer la liste des cartes SIM.")
+        if (!cancelled) {
+          setSimOptions([])
+          setSimList([])
+        }
+      }
+    })()
+    return () => { cancelled = true }
+  }, [])
+
+  const selectedSimPhone = useMemo(() => {
+    if (!selectedSim) return ''
+    const sim = simList.find((s) => String(s?.uid || '') === String(selectedSim))
+    return String(sim?.phoneNumber || '')
+  }, [simList, selectedSim])
 
   // Parse label and fetch Manufacturing Order details
   const onLabelValid = async (value) => {
@@ -128,6 +164,15 @@ function Product({ productLabel, simSelectId, currentOperationNumber }) {
   }, [selectedSim])
 
   useEffect(() => {
+    // If a persisted SIM is not in the fetched list, clear it
+    if (selectedSim && Array.isArray(simOptions) && simOptions.length > 0) {
+      const exists = simOptions.some((o) => o?.value === selectedSim)
+      if (!exists) setSelectedSim('')
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [simOptions])
+
+  useEffect(() => {
     // Changing phonie result resets battery step
     setBatteryResult(null)
   }, [phonieResult])
@@ -163,10 +208,11 @@ function Product({ productLabel, simSelectId, currentOperationNumber }) {
     try {
       const machineUid = import.meta.env.VITE_MACHINE_UID || 'MO03A'
       const manufacturingOrderUid = ofUid || (localStorage.getItem('current:manufacturingOrderUid') || '')
+      const statusUid = status === 'OK' ? STATUS_UID.OK : STATUS_UID.KO
       const payload = {
         productUid: String(productUid || localStorage.getItem('current:productUid') || ''),
         productSerialNumber: String(serial || localStorage.getItem('current:serialNumber') || ''),
-        productStatusUid: String(status || ''),
+        productStatusUid: String(statusUid || ''),
         creationDate: new Date().toISOString(),
         manufacturingOrderUid: String(manufacturingOrderUid || ''),
         userUid: operator ? String(operator.userUid) : '',
@@ -280,6 +326,12 @@ function Product({ productLabel, simSelectId, currentOperationNumber }) {
               />
             )}
 
+            {prevOpOk === true && showSimSelect && simError && (
+              <ImpactMessage variant="error" title="Cartes SIM indisponibles">
+                {simError}
+              </ImpactMessage>
+            )}
+
             <ShapeDisplay
               serial={serial}
               sim={selectedSim}
@@ -308,9 +360,15 @@ function Product({ productLabel, simSelectId, currentOperationNumber }) {
                         setIsReady(true)
                         // Fire-and-forget the call; update status when it returns
                         if (callStatus !== 'pending') {
+                          const phone = selectedSimPhone
+                          if (!phone) {
+                            setCallStatus('error')
+                            setCallError('Aucun numéro associé à la carte SIM sélectionnée.')
+                            return
+                          }
                           setCallStatus('pending')
                           setCallError('')
-                          callGsm({ phoneNumber: '+33619228309', audioOk: true })
+                          callGsm({ phoneNumber: phone, audioOk: true })
                             .then(({ ok, status }) => {
                               if (ok) setCallStatus('success')
                               else {
@@ -358,7 +416,13 @@ function Product({ productLabel, simSelectId, currentOperationNumber }) {
                         if (callStatus === 'pending') return
                         setCallStatus('pending')
                         setCallError('')
-                        const { ok, status } = await callGsm({ phoneNumber: '+33619228309', audioOk: true })
+                        const phone = selectedSimPhone
+                        if (!phone) {
+                          setCallStatus('error')
+                          setCallError('Aucun numéro associé à la carte SIM sélectionnée.')
+                          return
+                        }
+                        const { ok, status } = await callGsm({ phoneNumber: phone, audioOk: true })
                         if (ok) {
                           setCallStatus('success')
                           setIsReady(true)
@@ -439,6 +503,7 @@ function Product({ productLabel, simSelectId, currentOperationNumber }) {
                   <>
                     <button className="btn" onClick={() => setBatteryResult('ok')}>Bascule: OK</button>
                     <button className="btn" onClick={() => setBatteryResult('ko')}>Bascule: KO</button>
+                    <button className="btn" onClick={() => submitAndReset('KO')}>Tester un autre produit</button>
                   </>
                 )}
               >

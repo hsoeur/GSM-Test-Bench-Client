@@ -34,6 +34,8 @@ export const ENDPOINTS = {
   operationsByProductUid: (productUid) => join(API_BASES.MO, `api/Operation/GetCollectionOperationBasic?productUid=${encodeURIComponent(productUid || '')}`),
   // Operators
   operatorsCurrent: join(API_BASES.MO, 'api/Operator/GetCollectionCurrentOperator'),
+  // Sim cards
+  simCards: join(API_BASES.MO, 'api/SimCard/GetCollectionSimCards'),
 }
 
 export default { API_BASES, ENDPOINTS }
