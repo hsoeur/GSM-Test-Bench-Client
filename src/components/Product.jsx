@@ -320,49 +320,41 @@ function Product({ productLabel, simSelectId, currentOperationNumber }) {
             />
 
             {prevOpOk === true && selectedSim && isReady === null && (
-              <ImpactMessage
-                variant="info"
-                title="Confirmez l’état READY"
-                actions={(
-                  <>
-                    <button
-                      className="btn"
-                      onClick={() => {
-                        // Proceed immediately without awaiting the endpoint
-                        setIsReady(true)
-                        // Fire-and-forget the call; update status when it returns
-                        if (callStatus !== 'pending') {
-                          const phone = selectedSimPhone
-                          if (!phone) {
+              <div className="prompt-actions">
+                <button
+                  className="btn btn-yes btn-cta"
+                  onClick={() => {
+                    // Proceed immediately without awaiting the endpoint
+                    setIsReady(true)
+                    // Fire-and-forget the call; update status when it returns
+                    if (callStatus !== 'pending') {
+                      const phone = selectedSimPhone
+                      if (!phone) {
+                        setCallStatus('error')
+                        setCallError('Aucun numéro associé à la carte SIM sélectionnée.')
+                        return
+                      }
+                      setCallStatus('pending')
+                      setCallError('')
+                      callGsm({ phoneNumber: phone, audioOk: true })
+                        .then(({ ok, status }) => {
+                          if (ok) setCallStatus('success')
+                          else {
                             setCallStatus('error')
-                            setCallError('Aucun numéro associé à la carte SIM sélectionnée.')
-                            return
+                            setCallError(`Échec de l'appel (HTTP ${status || '—'})`)
                           }
-                          setCallStatus('pending')
-                          setCallError('')
-                          callGsm({ phoneNumber: phone, audioOk: true })
-                            .then(({ ok, status }) => {
-                              if (ok) setCallStatus('success')
-                              else {
-                                setCallStatus('error')
-                                setCallError(`Échec de l'appel (HTTP ${status || '—'})`)
-                              }
-                            })
-                            .catch(() => {
-                              setCallStatus('error')
-                              setCallError("Impossible d'initier l'appel via le modem GSM.")
-                            })
-                        }
-                      }}
-                    >
-                      Oui
-                    </button>
-                    <button className="btn" onClick={() => setIsReady(false)}>Non</button>
-                  </>
-                )}
-              >
-                Le produit est-il en mode READY (bien initialisé) ?
-              </ImpactMessage>
+                        })
+                        .catch(() => {
+                          setCallStatus('error')
+                          setCallError("Impossible d'initier l'appel via le modem GSM.")
+                        })
+                    }
+                  }}
+                >
+                  OUI
+                </button>
+                <button className="btn btn-no btn-cta" onClick={() => setIsReady(false)}>NON</button>
+              </div>
             )}
 
             {prevOpOk === true && selectedSim && isReady === false && (

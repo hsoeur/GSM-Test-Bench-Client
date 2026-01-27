@@ -266,7 +266,14 @@
 
 /* READY prompt */
 .prompt { background: var(--gray-50); border: 1px solid var(--border); border-radius: 10px; padding: 12px; }
-.prompt-actions { display: flex; gap: 8px; }
+.prompt-actions { display: flex; gap: 12px; justify-content: center; margin-top: 8px; }
+
+/* Emphasized action buttons for YES/NO */
+.btn-cta { height: 52px; font-size: 18px; padding: 0 22px; border-radius: 12px; min-width: 140px; }
+.btn-yes { background: #22c55e; }
+.btn-yes:hover { background: #16a34a; }
+.btn-no { background: #ef4444; }
+.btn-no:hover { background: #dc2626; }
 
 /* Footer status bar */
 .status-footer {

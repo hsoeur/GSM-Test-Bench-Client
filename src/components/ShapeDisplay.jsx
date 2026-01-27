@@ -29,6 +29,11 @@ function ShapeDisplay({ serial = '', sim = '', ready = false, shape: forcedShape
             <span className="shape-overlay-text">Veuillez scanner le code barre du produit et choisir une carte SIM</span>
           </div>
         )}
+        {shape === 'yellow' && (
+          <div className="shape-overlay yellow">
+            <span className="shape-overlay-text">Confirmer que la LED verte est allumée</span>
+          </div>
+        )}
         {shape === 'blue' && (
           <div className="shape-overlay blue">
             <span className="shape-overlay-text">En cours de test</span>
