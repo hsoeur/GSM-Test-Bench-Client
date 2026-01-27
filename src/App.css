@@ -80,6 +80,31 @@
 	overflow: hidden;
 }
 
+/* Strong, explicit product states */
+.panel.good {
+	background: var(--success-bg);
+	border-color: var(--success-border);
+	box-shadow: 0 6px 24px rgba(34, 197, 94, 0.20);
+}
+.panel.good .panel-header {
+	background: rgba(34, 197, 94, 0.12);
+	border-bottom-color: var(--success-border);
+}
+.panel.good .panel-header h2,
+.panel.good .panel-subtitle { color: var(--success-ink); }
+
+.panel.bad {
+	background: var(--error-bg);
+	border-color: var(--error-border);
+	box-shadow: 0 6px 24px rgba(239, 68, 68, 0.20);
+}
+.panel.bad .panel-header {
+	background: rgba(239, 68, 68, 0.12);
+	border-bottom-color: var(--error-border);
+}
+.panel.bad .panel-header h2,
+.panel.bad .panel-subtitle { color: var(--error-ink); }
+
 .panel-header {
 	padding: 14px 16px;
 	border-bottom: 1px solid var(--border);
@@ -145,23 +170,58 @@
 	cursor: not-allowed;
 }
 
-.result {
-	padding: 10px 12px;
+/* Modern translucent CTA buttons */
+.btn-cta {
+	height: 40px;
+	padding: 0 14px;
 	border-radius: 10px;
-	font-size: 14px;
+	font-weight: 800;
+	letter-spacing: 0.2px;
+}
+
+.btn-yes.btn-cta {
+	background: var(--success-bg);
+	color: var(--success-ink);
+	border: 1px solid var(--success-border);
+	box-shadow: 0 6px 16px rgba(34, 197, 94, 0.18);
+}
+.btn-yes.btn-cta:hover {
+	background: rgba(34, 197, 94, 0.14);
+	border-color: rgba(34, 197, 94, 0.45);
+	box-shadow: 0 8px 18px rgba(34, 197, 94, 0.25);
+}
+.btn-yes.btn-cta:focus-visible {
+	outline: none;
+	box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.25), 0 6px 16px rgba(34, 197, 94, 0.18);
+}
+
+.btn-no.btn-cta {
+	background: var(--error-bg);
+	color: var(--error-ink);
+	border: 1px solid var(--error-border);
+	box-shadow: 0 6px 16px rgba(239, 68, 68, 0.18);
+}
+.btn-no.btn-cta:hover {
+	background: rgba(239, 68, 68, 0.14);
+	border-color: rgba(239, 68, 68, 0.45);
+	box-shadow: 0 8px 18px rgba(239, 68, 68, 0.25);
+}
+.btn-no.btn-cta:focus-visible {
+	outline: none;
+	box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.25), 0 6px 16px rgba(239, 68, 68, 0.18);
 }
 
 .result.ok {
-	background: rgba(34, 197, 94, 0.12);
-	color: #16a34a;
-	border: 1px solid rgba(34, 197, 94, 0.28);
+	background: var(--success-bg);
+	color: var(--success-ink);
+	border: 1px solid var(--success-border);
+}
+.result.ko {
+	background: var(--error-bg);
+	color: var(--error-ink);
+	border: 1px solid var(--error-border);
 }
 
-.result.ko {
-	background: rgba(239, 68, 68, 0.12);
-	color: #dc2626;
-	border: 1px solid rgba(239, 68, 68, 0.28);
-}
 
 /* Impactful notice banners */
 .notice {
@@ -196,10 +256,10 @@
 .notice-close:hover { color: var(--text); }
 @keyframes noticeIn { from { opacity: 0; transform: translateY(4px);} to { opacity: 1; transform: translateY(0);} }
 
-.notice.success { border-color: rgba(34,197,94,0.35); background: rgba(34,197,94,0.08); color: #166534; }
-.notice.success .notice-left { background: #22c55e; opacity: 1; }
-.notice.error { border-color: rgba(239,68,68,0.35); background: rgba(239,68,68,0.10); color: #7f1d1d; }
-.notice.error .notice-left { background: #ef4444; opacity: 1; }
+.notice.success { border-color: var(--success-border); background: var(--success-bg); color: var(--success-ink); }
+.notice.success .notice-left { background: var(--success); opacity: 1; }
+.notice.error { border-color: var(--error-border); background: var(--error-bg); color: var(--error-ink); }
+.notice.error .notice-left { background: var(--error); opacity: 1; }
 .notice.info { border-color: rgba(59,130,246,0.35); background: rgba(59,130,246,0.10); color: #1e3a8a; }
 .notice.info .notice-left { background: #3b82f6; opacity: 1; }
 .notice.warning { border-color: rgba(234,179,8,0.35); background: rgba(234,179,8,0.12); color: #78350f; }

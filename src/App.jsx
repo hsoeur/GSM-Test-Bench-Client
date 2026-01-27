@@ -18,6 +18,7 @@ function App() {
   const [operation, setOperation] = useState(null)
   const [gsmInitState, setGsmInitState] = useState('idle') // idle | pending | success | error
   const [gsmInitError, setGsmInitError] = useState(null)
+  const [showGsmInitSuccess, setShowGsmInitSuccess] = useState(false)
   const didInitRef = useRef(false)
   const initLockRef = useRef(false)
 
@@ -31,6 +32,7 @@ function App() {
       const res = await initGsm(4000)
       if (res.ok) {
         setGsmInitState('success')
+        setShowGsmInitSuccess(true)
       } else {
         setGsmInitState('error')
         setGsmInitError(`Initialisation du modem GSM échouée (HTTP ${res.status || '—'})`)
@@ -48,6 +50,14 @@ function App() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // Auto-hide the success banner after 2 seconds, but keep app enabled
+  useEffect(() => {
+    if (gsmInitState === 'success' && showGsmInitSuccess) {
+      const t = setTimeout(() => setShowGsmInitSuccess(false), 2000)
+      return () => clearTimeout(t)
+    }
+  }, [gsmInitState, showGsmInitSuccess])
 
   // Optional: persist MO in localStorage for convenience during a session
   useEffect(() => {
@@ -143,9 +153,14 @@ function App() {
       ) : (
         <>
       {gsmInitState !== 'idle' && (
-        gsmInitState === 'success' ? (
+        gsmInitState === 'success' && showGsmInitSuccess ? (
           <div style={{ padding: '12px 16px' }}>
-            <ImpactMessage variant="success" title="Modem GSM initialisé">
+            <ImpactMessage
+              variant="success"
+              title="Modem GSM initialisé"
+              dismissible
+              onClose={() => setShowGsmInitSuccess(false)}
+            >
               L'initialisation du modem GSM s'est bien passée.
             </ImpactMessage>
           </div>

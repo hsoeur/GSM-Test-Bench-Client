@@ -24,6 +24,7 @@ function Product({ productLabel, simSelectId, currentOperationNumber }) {
   const [moLoading, setMoLoading] = useState(false)
   const [moError, setMoError] = useState('')
   const [prevOpOk, setPrevOpOk] = useState(null) // boolean | null
+  const [showPrevOpOkBanner, setShowPrevOpOkBanner] = useState(false)
   const [testStartTs, setTestStartTs] = useState(null)
 
   const [serial, setSerial] = useState('')
@@ -177,6 +178,17 @@ function Product({ productLabel, simSelectId, currentOperationNumber }) {
     setBatteryResult(null)
   }, [phonieResult])
 
+  // Auto-hide "Produit OK N-1" banner after 1 second
+  useEffect(() => {
+    if (prevOpOk === true) {
+      setShowPrevOpOkBanner(true)
+      const t = setTimeout(() => setShowPrevOpOkBanner(false), 1000)
+      return () => clearTimeout(t)
+    } else {
+      setShowPrevOpOkBanner(false)
+    }
+  }, [prevOpOk])
+
   useEffect(() => {
     // Persist SIM choice per product when selected
     try {
@@ -246,9 +258,13 @@ function Product({ productLabel, simSelectId, currentOperationNumber }) {
   const progressPct = Math.round((stepsDone / stepsTotal) * 100)
   console.log({ stepsDone, progressPct })
 
+  // Derive explicit product status tones for strong visual feedback
+  const isBad = (isReady === false) || (phonieResult === 'ko') || (batteryResult === 'ko')
+  const isGood = (batteryResult === 'ok')
+
 
   return (
-    <div className="panel">
+    <div className={`panel ${isGood ? 'good' : (isBad ? 'bad' : '')}`}>
       <div className="panel-header">
         <h2>{productLabel}</h2>
         {serial && (
@@ -269,7 +285,7 @@ function Product({ productLabel, simSelectId, currentOperationNumber }) {
 
             {/* Removed OF context display after label scan per request */}
 
-            {prevOpOk === true && (
+            {prevOpOk === true && showPrevOpOkBanner && (
               <ImpactMessage variant="success" title="Produit OK N-1">
                 Étape précédente validée. Vous pouvez continuer.
               </ImpactMessage>
@@ -308,6 +324,11 @@ function Product({ productLabel, simSelectId, currentOperationNumber }) {
               serial={serial}
               sim={selectedSim}
               ready={isReady === true}
+              overlayMessage={
+                prevOpOk === true && selectedSim && isReady === true && phonieResult === 'ok' && batteryResult === null
+                  ? "Basculer le bouton du boitier d'alimentation sur OFF"
+                  : undefined
+              }
               shape={
                 batteryResult === 'ok'
                   ? 'green'
@@ -368,80 +389,36 @@ function Product({ productLabel, simSelectId, currentOperationNumber }) {
             )}
 
             {prevOpOk === true && callStatus === 'error' && (
-              <ImpactMessage
-                variant="error"
-                title="Échec de démarrage de l'appel"
-                actions={(
-                  <>
-                    <button
-                      className="btn"
-                      disabled={callStatus === 'pending'}
-                      onClick={async () => {
-                        if (callStatus === 'pending') return
-                        setCallStatus('pending')
-                        setCallError('')
-                        const phone = selectedSimPhone
-                        if (!phone) {
-                          setCallStatus('error')
-                          setCallError('Aucun numéro associé à la carte SIM sélectionnée.')
-                          return
-                        }
-                        const { ok, status } = await callGsm({ phoneNumber: phone, audioOk: true })
-                        if (ok) {
-                          setCallStatus('success')
-                          setIsReady(true)
-                        } else {
-                          setCallStatus('error')
-                          setCallError(`Échec de l'appel (HTTP ${status || '—'})`)
-                        }
-                      }}
-                    >
-                      Réessayer l'appel
-                    </button>
-                  </>
-                )}
-              >
-                {callError || "Impossible d'initier l'appel via le modem GSM."}
-              </ImpactMessage>
+              null
             )}
 
             {prevOpOk === true && callStatus === 'success' && phonieResult === null && (
-              <ImpactMessage variant="info" title="Appel lancé">
-                L'appel a été initié. Procédez au test de phonie puis sélectionnez le résultat.
-              </ImpactMessage>
+              <ImpactMessage variant="info" title="Appel en cours - Tester la phonie après les 4 BIPs" />
             )}
 
             {prevOpOk === true && selectedSim && isReady === true && phonieResult === null && (
-              <ImpactMessage
-                variant="info"
-                title="Tester la Phonie"
-                actions={(
-                  <>
-                    <button
-                      className="btn"
-                      onClick={() => {
-                        setPhonieResult('ok')
-                        // Fire-and-forget hangup request; do not block UI
-                        hangupGsm().catch(() => {})
-                      }}
-                    >
-                      Phonie OK
-                    </button>
-                    <button
-                      className="btn"
-                      onClick={() => {
-                        setPhonieResult('ko')
-                        // Fire-and-forget hangup request; do not block UI
-                        hangupGsm().catch(() => {})
-                      }}
-                    >
-                      Phonie KO
-                    </button>
-                  </>
-                )}
-              >
-                Effectuez le test de Phonie et sélectionnez le résultat.
-              </ImpactMessage>
+              <div className="prompt-actions">
+                <button
+                  className="btn btn-yes btn-cta"
+                  onClick={() => {
+                    setPhonieResult('ok')
+                    // Fire-and-forget hangup request; do not block UI
+                    hangupGsm().catch(() => {})
+                  }}
+                >
+                  Phonie OK
+                </button>
+                <button
+                  className="btn btn-no btn-cta"
+                  onClick={() => {
+                    setPhonieResult('ko')
+                    // Fire-and-forget hangup request; do not block UI
+                    hangupGsm().catch(() => {})
+                  }}
+                >
+                  Phonie KO
+                </button>
+              </div>
             )}
 
             {prevOpOk === true && phonieResult && (
@@ -455,24 +432,14 @@ function Product({ productLabel, simSelectId, currentOperationNumber }) {
             {prevOpOk === true && phonieResult === 'ko' && (
               <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
                 <button className="btn" onClick={() => setPhonieResult(null)}>Retester ce produit</button>
-                <button className="btn" onClick={() => submitAndReset('KO')}>Tester un autre produit</button>
               </div>
             )}
 
             {prevOpOk === true && selectedSim && isReady === true && phonieResult === 'ok' && batteryResult === null && (
-              <ImpactMessage
-                variant="warning"
-                title="Vérifier la LED en mode batterie"
-                actions={(
-                  <>
-                    <button className="btn" onClick={() => setBatteryResult('ok')}>Bascule: OK</button>
-                    <button className="btn" onClick={() => setBatteryResult('ko')}>Bascule: KO</button>
-                    <button className="btn" onClick={() => submitAndReset('KO')}>Tester un autre produit</button>
-                  </>
-                )}
-              >
-                Basculez sur la batterie et confirmez si la LED s’allume.
-              </ImpactMessage>
+              <div className="prompt-actions">
+                <button className="btn btn-yes btn-cta" onClick={() => setBatteryResult('ok')}>Bascule: OK</button>
+                <button className="btn btn-no btn-cta" onClick={() => setBatteryResult('ko')}>Bascule: KO</button>
+              </div>
             )}
 
             {prevOpOk === true && batteryResult && (
@@ -484,10 +451,7 @@ function Product({ productLabel, simSelectId, currentOperationNumber }) {
             )}
 
             {prevOpOk === true && (batteryResult === 'ok' || batteryResult === 'ko') && (
-              <div style={{ marginTop: 8 }}>
-                <button className="btn" onClick={() => submitAndReset(batteryResult === 'ok' ? 'OK' : 'KO')}>Tester un autre produit</button>
-                
-              </div>
+              null
             )}
       </div>
     </div>

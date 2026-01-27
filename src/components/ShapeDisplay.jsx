@@ -4,7 +4,7 @@ import greenShape from '../assets/green_shape.png'
 import redShape from '../assets/red_shape.png'
 import yellowShape from '../assets/yellow_shape.png'
 
-function ShapeDisplay({ serial = '', sim = '', ready = false, shape: forcedShape, style }) {
+function ShapeDisplay({ serial = '', sim = '', ready = false, shape: forcedShape, style, overlayMessage }) {
   const autoShape = sim ? (ready ? 'blue' : 'yellow') : 'gray'
   const shape = forcedShape ?? autoShape
 
@@ -36,7 +36,17 @@ function ShapeDisplay({ serial = '', sim = '', ready = false, shape: forcedShape
         )}
         {shape === 'blue' && (
           <div className="shape-overlay blue">
-            <span className="shape-overlay-text">En cours de test</span>
+            <span className="shape-overlay-text">{overlayMessage || 'Appel en cours - Tester la phonie après les 4 BIPs'}</span>
+          </div>
+        )}
+        {shape === 'green' && (
+          <div className="shape-overlay green">
+            <span className="shape-overlay-text">{overlayMessage || 'CARTE BONNE'}</span>
+          </div>
+        )}
+        {shape === 'red' && (
+          <div className="shape-overlay red">
+            <span className="shape-overlay-text">{overlayMessage || 'CARTE MAUVAISE'}</span>
           </div>
         )}
       </div>

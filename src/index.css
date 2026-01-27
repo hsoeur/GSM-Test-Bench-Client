@@ -22,6 +22,17 @@
 	--header-bg: rgba(65, 89, 133, 0.34); /* translucent #415985 */
 	--header-border: rgba(65, 89, 133, 0.55);
 	--header-gloss: rgba(255, 255, 255, 0.16); /* subtle highlight */
+
+	/* Modern success/error palette aligned with banners */
+	--success: #22C55E; /* green-500 */
+	--success-ink: #166534; /* green-800 for text */
+	--success-bg: rgba(34, 197, 94, 0.08);
+	--success-border: rgba(34, 197, 94, 0.35);
+
+	--error: #EF4444; /* red-500 */
+	--error-ink: #7F1D1D; /* red-900 for text */
+	--error-bg: rgba(239, 68, 68, 0.10);
+	--error-border: rgba(239, 68, 68, 0.35);
 }
 
 html, body, #root {
