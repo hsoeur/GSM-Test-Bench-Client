@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import ProgressBar from './ProgressBar.jsx'
 import KeyboardScanner from './KeyboardScanner.jsx'
 import SimSelector from './SimSelector.jsx'
@@ -38,6 +38,7 @@ function Product({ productLabel, simSelectId, currentOperationNumber }) {
   const [batteryResult, setBatteryResult] = useState(null) // 'ok' | 'ko' | null
   const [callStatus, setCallStatus] = useState('idle') // idle | pending | success | error
   const [callError, setCallError] = useState('')
+  const didSubmitRef = useRef(false)
 
   const simStorageKey = useMemo(() => `sim:last:${simSelectId}`,[simSelectId])
 
@@ -199,6 +200,8 @@ function Product({ productLabel, simSelectId, currentOperationNumber }) {
   }, [selectedSim, simStorageKey])
 
   const resetAll = () => {
+    // Allow auto-submission on next card
+    didSubmitRef.current = false
     setSerial('')
     setShowSimSelect(false)
     setSelectedSim('')
@@ -247,6 +250,43 @@ function Product({ productLabel, simSelectId, currentOperationNumber }) {
     }
   }
 
+  // Submit traceability without resetting UI; used for automatic finalization
+  const submitTraceability = async (status) => {
+    try {
+      console.group('[Traceability] Submitting')
+      console.info('Status:', status)
+      const machineUid = import.meta.env.VITE_MACHINE_UID || 'MO03A'
+      const manufacturingOrderUid = ofUid || (localStorage.getItem('current:manufacturingOrderUid') || '')
+      const statusUid = status === 'OK' ? STATUS_UID.OK : STATUS_UID.KO
+      const payload = {
+        productUid: String(productUid || localStorage.getItem('current:productUid') || ''),
+        productSerialNumber: String(serial || localStorage.getItem('current:serialNumber') || ''),
+        productStatusUid: String(statusUid || ''),
+        creationDate: new Date().toISOString(),
+        manufacturingOrderUid: String(manufacturingOrderUid || ''),
+        userUid: operator ? String(operator.userUid) : '',
+        cycleTime: (() => {
+          if (!testStartTs) return ''
+          const secs = (Date.now() - testStartTs) / 1000
+          return String(Number(secs.toFixed(1)))
+        })(),
+        operationNumber: currentOperationNumber != null ? String(currentOperationNumber) : '',
+        machineUid: String(machineUid),
+      }
+      console.info('Payload:', payload)
+      if (payload.productUid && payload.productSerialNumber && payload.manufacturingOrderUid) {
+        const { ok, status } = await createProductTraceability(payload)
+        console.info('Response:', { ok, status })
+      } else {
+        console.warn('Missing required fields; skipping traceability submit')
+      }
+    } catch (_) {
+      // Ignore errors to avoid blocking UI
+    } finally {
+      console.groupEnd()
+    }
+  }
+
   const stepsTotal = 5
   const stepsDone = (
     (serial ? 1 : 0) +
@@ -261,6 +301,15 @@ function Product({ productLabel, simSelectId, currentOperationNumber }) {
   // Derive explicit product status tones for strong visual feedback
   const isBad = (isReady === false) || (phonieResult === 'ko') || (batteryResult === 'ko')
   const isGood = (batteryResult === 'ok')
+
+  // Auto-submit traceability once when final state is reached (good or bad)
+  useEffect(() => {
+    const finalStatus = isGood ? 'OK' : (isBad ? 'KO' : null)
+    if (finalStatus && !didSubmitRef.current) {
+      didSubmitRef.current = true
+      submitTraceability(finalStatus)
+    }
+  }, [isGood, isBad])
 
 
   return (
@@ -429,11 +478,7 @@ function Product({ productLabel, simSelectId, currentOperationNumber }) {
               )
             )}
 
-            {prevOpOk === true && phonieResult === 'ko' && (
-              <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
-                <button className="btn" onClick={() => setPhonieResult(null)}>Retester ce produit</button>
-              </div>
-            )}
+            
 
             {prevOpOk === true && selectedSim && isReady === true && phonieResult === 'ok' && batteryResult === null && (
               <div className="prompt-actions">
@@ -452,6 +497,12 @@ function Product({ productLabel, simSelectId, currentOperationNumber }) {
 
             {prevOpOk === true && (batteryResult === 'ok' || batteryResult === 'ko') && (
               null
+            )}
+            {/* Final CTA pinned at the bottom of the panel body */}
+            {(isGood || isBad) && (
+              <div className="prompt-actions" style={{ marginTop: 12 }}>
+                <button className="btn btn-cta btn-next" onClick={resetAll}>Tester une autre carte</button>
+              </div>
             )}
       </div>
     </div>
