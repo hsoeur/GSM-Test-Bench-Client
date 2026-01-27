@@ -267,35 +267,7 @@ function Product({ productLabel, simSelectId, currentOperationNumber }) {
               showLastResult={false}
             />
 
-            {(productUid || serialLabel || ofUid) && (
-              <ImpactMessage
-                variant={moError ? 'error' : 'info'}
-                title={moError ? 'Vérification étape précédente' : 'Contexte OF en cours'}
-                actions={(
-                  <>
-                    {moLoading ? (
-                      <span>Chargement…</span>
-                    ) : (
-                      <button className="btn" onClick={resetAll}>Effacer</button>
-                    )}
-                  </>
-                )}
-              >
-                {moError && (
-                  <div style={{ marginBottom: 8 }}>
-                    {moError}
-                  </div>
-                )}
-                <div style={{ display: 'grid', gridTemplateColumns: '140px 1fr', gap: '6px 12px' }}>
-                  <span>Code produit:</span>
-                  <strong>{productUid || '—'}</strong>
-                  <span>SN:</span>
-                  <strong>{serialLabel || '—'}</strong>
-                  <span>Numéro d’OF:</span>
-                  <strong>{ofUid || '—'}</strong>
-                </div>
-              </ImpactMessage>
-            )}
+            {/* Removed OF context display after label scan per request */}
 
             {prevOpOk === true && (
               <ImpactMessage variant="success" title="Produit OK N-1">
