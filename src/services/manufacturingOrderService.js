@@ -7,7 +7,7 @@ export async function getManufacturingOrderByUid(uid) {
     ? ENDPOINTS.manufacturingOrderByUid(uid)
     : ENDPOINTS.manufacturingOrderByUid
   const { ok, status, data } = await getJson(url, {
-    headers: { accept: 'text/plain' },
+    headers: { accept: 'application/json' },
     timeout: 5000,
   })
   return { ok, status, data }

@@ -7,7 +7,7 @@ export async function getOperationsByProductUid(productUid) {
     ? ENDPOINTS.operationsByProductUid(productUid)
     : ENDPOINTS.operationsByProductUid
   const { ok, status, data } = await getJson(url, {
-    headers: { accept: 'text/plain' },
+    headers: { accept: 'application/json' },
     timeout: 5000,
   })
   return { ok, status, data }

@@ -11,13 +11,10 @@ const join = (base, path) => {
 }
 
 export const API_BASES = {
-  // In dev, defaults use Vite proxy prefixes; override with absolute URLs in env for prod.
-  // Hardcoded TEST GSM API base (no .env)
+  // Hardcoded bases (no env). Update here if backends move.
   TEST_GSM: withTrailingSlash('http://localhost:5001'),
-  // Hardcoded DATA API base as requested (no .env)
-  DATA: withTrailingSlash('http://192.168.1.104:7000'),
-  // Hardcoded Manufacturing Order API base (no .env, no '/mo-api')
-  MO: withTrailingSlash('http://192.168.1.104:7000'),
+  DATA: withTrailingSlash('http://127.0.0.1:18080'),
+  MO: withTrailingSlash('http://127.0.0.1:18080'),
 }
 
 export const ENDPOINTS = {
@@ -27,18 +24,39 @@ export const ENDPOINTS = {
   gsmHangup: join(API_BASES.TEST_GSM, 'api/Gsm/hangup'),
   dataApiHealth: join(API_BASES.DATA, 'api/Health/Live'),
   dataDbHealth: join(API_BASES.DATA, 'api/Health/Database'),
-  manufacturingOrderByUid: (uid) => join(API_BASES.MO, `api/ManufacturingOrder/GetManufacturingOrderByManufacturingOrderUid?manufacturingOrderUid=${encodeURIComponent(uid || '')}`),
+  
+  // New endpoint for Manufacturing Order by UID
+  // Previously: api/ManufacturingOrder/GetManufacturingOrderByManufacturingOrderUid
+  // Now:       api/ManufacturingOrder/by-manufacturing-order-uid
+  manufacturingOrderByUid: (uid) => join(
+    API_BASES.MO,
+    `api/ManufacturingOrder/by-manufacturing-order-uid?manufacturingOrderUid=${encodeURIComponent(uid || '')}`,
+  ),
+  // Product Traceability N-1 check
+  // Previously: api/ProductTraceability/HasPreviousOperationOkStatus
+  // Now:       api/ProductTraceability/has-previous-operation-ok-status
   productTraceabilityHasPrevOk: ({ productUid, serialNumber, currentOperationNumber } = {}) =>
     join(
       API_BASES.MO,
-      `api/ProductTraceability/HasPreviousOperationOkStatus?productUid=${encodeURIComponent(productUid || '')}&serialNumber=${encodeURIComponent(serialNumber || '')}&currentOperationNumber=${encodeURIComponent(currentOperationNumber ?? '')}`,
+      `api/ProductTraceability/has-previous-operation-ok-status?productUid=${encodeURIComponent(productUid || '')}&serialNumber=${encodeURIComponent(serialNumber || '')}&currentOperationNumber=${encodeURIComponent(currentOperationNumber ?? '')}`,
     ),
-  productTraceabilityCreate: join(API_BASES.MO, 'api/ProductTraceability/CreateProductTraceability'),
-  operationsByProductUid: (productUid) => join(API_BASES.MO, `api/Operation/GetCollectionOperationBasic?productUid=${encodeURIComponent(productUid || '')}`),
+  // Product Traceability
+  // Previously: api/ProductTraceability/CreateProductTraceability
+  // Now:       api/ProductTraceability/create
+  productTraceabilityCreate: join(API_BASES.MO, 'api/ProductTraceability/create'),
+  // New operations endpoint for a product UID
+  // Previously: api/Operation/GetCollectionOperationBasic
+  // Now:       api/Operation/basic-by-product-uid
+  operationsByProductUid: (productUid) => join(
+    API_BASES.MO,
+    `api/Operation/basic-by-product-uid?productUid=${encodeURIComponent(productUid || '')}`,
+  ),
   // Operators
-  operatorsCurrent: join(API_BASES.MO, 'api/Operator/GetCollectionCurrentOperator'),
+  operatorsCurrent: join(API_BASES.MO, 'api/Operator/current'),
   // Sim cards
-  simCards: join(API_BASES.MO, 'api/SimCard/GetCollectionSimCards'),
+  // Previously: api/SimCard/GetCollectionSimCards
+  // Now:       api/SimCard/all
+  simCards: join(API_BASES.MO, 'api/SimCard/all'),
 }
 
 export default { API_BASES, ENDPOINTS }

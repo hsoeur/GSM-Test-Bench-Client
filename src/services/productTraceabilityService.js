@@ -1,22 +1,27 @@
 import { ENDPOINTS } from '../config/apiConfig.js'
-import { request } from './http.js'
+import { request, getJson } from './http.js'
 
 export async function hasPreviousOperationOkStatus(productUid, serialNumber, currentOperationNumber) {
   if (!productUid || !serialNumber) return { ok: false, status: 400, value: null }
   const url = typeof ENDPOINTS.productTraceabilityHasPrevOk === 'function'
     ? ENDPOINTS.productTraceabilityHasPrevOk({ productUid, serialNumber, currentOperationNumber })
     : ENDPOINTS.productTraceabilityHasPrevOk
-  const res = await request(url, {
-    method: 'GET',
-    headers: { accept: 'text/plain' },
+  const { ok, status, data } = await getJson(url, {
+    headers: { accept: 'application/json' },
     timeout: 5000,
   })
-  let text = null
-  try {
-    text = await res.text()
-  } catch (_) {}
-  const value = String(text).trim().toLowerCase() === 'true'
-  return { ok: res.ok, status: res.status, value, message: (text || '').trim() }
+  // Interpret response robustly: boolean, { value }, or string "true"/"false"
+  let value = null
+  if (typeof data === 'boolean') {
+    value = data
+  } else if (data && typeof data === 'object') {
+    if (typeof data.value === 'boolean') value = data.value
+    else if (typeof data.okStatus === 'boolean') value = data.okStatus
+  } else if (typeof data === 'string') {
+    value = String(data).trim().toLowerCase() === 'true'
+  }
+  const message = typeof data === 'string' ? data : ''
+  return { ok, status, value, message }
 }
 
 export async function createProductTraceability(payload) {
@@ -24,7 +29,7 @@ export async function createProductTraceability(payload) {
   if (!url || !payload) return { ok: false, status: 400 }
   const res = await request(url, {
     method: 'POST',
-    headers: { accept: 'text/plain', 'Content-Type': 'application/json' },
+    headers: { accept: 'application/json', 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
     timeout: 5000,
   })

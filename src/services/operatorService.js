@@ -6,7 +6,7 @@ export async function getCurrentOperators(timeoutMs = 5000) {
   if (!url) return { ok: false, status: 0, data: [] }
   try {
     const { ok, status, data } = await getJson(url, {
-      headers: { accept: 'text/plain' },
+      headers: { accept: 'application/json' },
       timeout: timeoutMs,
     })
     const list = Array.isArray(data) ? data : []

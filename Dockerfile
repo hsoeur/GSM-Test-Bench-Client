@@ -22,7 +22,7 @@ FROM nginx:alpine AS production
 COPY --from=builder /app/dist /usr/share/nginx/html
 
 # Exposer le port 80 à l'intérieur du conteneur
-EXPOSE 80
+EXPOSE 6001
 
 # Lancer nginx (utilise la config par défaut)
 CMD ["nginx", "-g", "daemon off;"]
