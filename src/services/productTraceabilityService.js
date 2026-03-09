@@ -36,4 +36,16 @@ export async function createProductTraceability(payload) {
   return { ok: res.ok, status: res.status }
 }
 
-export default { hasPreviousOperationOkStatus, createProductTraceability }
+export async function getLatestProductTraceability(productUid, serialNumber, operationUid) {
+  if (!productUid || !serialNumber || operationUid == null) return { ok: false, status: 400, data: null }
+  const url = typeof ENDPOINTS.productTraceabilityLatest === 'function'
+    ? ENDPOINTS.productTraceabilityLatest({ productUid, serialNumber, operationUid })
+    : ENDPOINTS.productTraceabilityLatest
+  const { ok, status, data } = await getJson(url, {
+    headers: { accept: 'application/json' },
+    timeout: 5000,
+  })
+  return { ok, status, data }
+}
+
+export default { hasPreviousOperationOkStatus, createProductTraceability, getLatestProductTraceability }

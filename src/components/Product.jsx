@@ -3,7 +3,7 @@ import TestStep from './TestStep.jsx'
 import ImpactMessage from './ImpactMessage.jsx'
 import { callGsm, hangupGsm } from '../services/gsmService.js'
 import { getManufacturingOrderByUid } from '../services/manufacturingOrderService.js'
-import { hasPreviousOperationOkStatus, createProductTraceability } from '../services/productTraceabilityService.js'
+import { hasPreviousOperationOkStatus, createProductTraceability, getLatestProductTraceability } from '../services/productTraceabilityService.js'
 import { useOperator } from '../context/OperatorContext.jsx'
 import { getSimCards, toSimOption } from '../services/simCardService.js'
 import testSequenceConfig from '../config/testSequence.json'
@@ -35,6 +35,7 @@ function Product({ productLabel, simSelectId, currentOperationNumber }) {
   
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [retestConfirmation, setRetestConfirmation] = useState(null) // { productUid, serialLabel, ofUid } when confirmation needed
   const didSubmitRef = useRef(false)
 
   const steps = useMemo(() => testSequenceConfig.testSequence || [], [])
@@ -106,6 +107,7 @@ function Product({ productLabel, simSelectId, currentOperationNumber }) {
     }))
     setError('')
     setLoading(false)
+    setRetestConfirmation(null)
   }
 
   const submitTraceability = async (status) => {
@@ -134,6 +136,16 @@ function Product({ productLabel, simSelectId, currentOperationNumber }) {
     } catch (_) {
       // Ignore errors to avoid blocking UI
     }
+  }
+
+  const handleConfirmRetest = () => {
+    setRetestConfirmation(null)
+    setCurrentStepIndex(prev => prev + 1)
+  }
+
+  const handleCancelRetest = () => {
+    setRetestConfirmation(null)
+    resetAll()
   }
 
   const handleStepNext = async (stepId, value) => {
@@ -197,6 +209,19 @@ function Product({ productLabel, simSelectId, currentOperationNumber }) {
 
           if (!prevOk) {
             setError("Produit non valide à l'étape de fabrication précédente.")
+            return
+          }
+
+          // Check if product already tested for current operation
+          const { ok: ok3, status: st3, data: latestTrace } = await getLatestProductTraceability(
+            productUid,
+            serialPart,
+            currentOperationNumber,
+          )
+
+          if (ok3 && latestTrace && latestTrace.productStatusUid === STATUS_UID.OK) {
+            // Product already tested OK - ask for confirmation to retest
+            setRetestConfirmation({ productUid, serialLabel: serialPart, ofUid: ofPart })
             return
           }
 
@@ -322,7 +347,22 @@ function Product({ productLabel, simSelectId, currentOperationNumber }) {
       </div>
       
       <div className="panel-body">
-        {error && (
+        {retestConfirmation && (
+          <ImpactMessage
+            variant="warning"
+            title="Produit déjà testé"
+            actions={(
+              <>
+                <button className="btn" onClick={handleConfirmRetest}>Retester</button>
+                <button className="btn-ghost" onClick={handleCancelRetest}>Annuler</button>
+              </>
+            )}
+          >
+            Ce produit a déjà été testé BON. Voulez-vous le retester ?
+          </ImpactMessage>
+        )}
+
+        {error && !retestConfirmation && (
           <ImpactMessage
             variant="error"
             title="Erreur"
@@ -332,7 +372,7 @@ function Product({ productLabel, simSelectId, currentOperationNumber }) {
           </ImpactMessage>
         )}
 
-        {!error && currentStep && (
+        {!error && !retestConfirmation && currentStep && (
           <TestStep
             step={currentStep}
             data={testData}

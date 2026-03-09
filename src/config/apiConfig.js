@@ -44,6 +44,12 @@ export const ENDPOINTS = {
   // Previously: api/ProductTraceability/CreateProductTraceability
   // Now:       api/ProductTraceabilities/create
   productTraceabilityCreate: join(API_BASES.MO, 'api/ProductTraceabilities/create'),
+  // Get latest product traceability by product, serial number and operation
+  productTraceabilityLatest: ({ productUid, serialNumber, operationUid } = {}) =>
+    join(
+      API_BASES.MO,
+      `api/ProductTraceabilities/latest-by-product-serial-and-operation?product=${encodeURIComponent(productUid || '')}&serialNumber=${encodeURIComponent(serialNumber || '')}&operationUid=${encodeURIComponent(operationUid ?? '')}`,
+    ),
   // New operations endpoint for a product UID
   // Previously: api/Operation/GetCollectionOperationBasic
   // Now:       api/Operation/basic-by-product-uid
