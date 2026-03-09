@@ -448,3 +448,231 @@
 	justify-content: center;
 	padding: 16px;
 }
+
+/* Test Step - Sequential mode tunnel UI */
+.test-step {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 24px;
+	padding: 32px 16px;
+	text-align: center;
+}
+
+.result-badge {
+	font-size: 32px;
+	font-weight: 900;
+	letter-spacing: 1px;
+	padding: 16px 32px;
+	border-radius: 16px;
+	margin-bottom: 16px;
+	text-transform: uppercase;
+	animation: badgeZoomIn 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
+	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.result-badge-good {
+	background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+	color: white;
+	border: 3px solid #15803d;
+	text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.result-badge-bad {
+	background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+	color: white;
+	border: 3px solid #b91c1c;
+	text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+@keyframes badgeZoomIn {
+	0% {
+		opacity: 0;
+		transform: scale(0.5) rotate(-5deg);
+	}
+	70% {
+		transform: scale(1.1) rotate(2deg);
+	}
+	100% {
+		opacity: 1;
+		transform: scale(1) rotate(0deg);
+	}
+}
+
+@media (min-width: 900px) {
+	.result-badge {
+		font-size: 42px;
+		padding: 20px 48px;
+	}
+}
+
+.test-step-pictogram {
+	margin-bottom: 8px;
+	animation: pictogramIn 300ms ease-out;
+}
+
+@keyframes pictogramIn {
+	from {
+		opacity: 0;
+		transform: scale(0.9) translateY(-12px);
+	}
+	to {
+		opacity: 1;
+		transform: scale(1) translateY(0);
+	}
+}
+
+.test-step-instruction {
+	font-size: 22px;
+	font-weight: 700;
+	line-height: 1.4;
+	color: var(--text);
+	max-width: 600px;
+	animation: instructionIn 300ms ease-out 100ms backwards;
+}
+
+@media (min-width: 900px) {
+	.test-step-instruction {
+		font-size: 26px;
+	}
+}
+
+@keyframes instructionIn {
+	from {
+		opacity: 0;
+		transform: translateY(8px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+.test-step-action {
+	width: 100%;
+	max-width: 500px;
+	animation: actionIn 300ms ease-out 200ms backwards;
+}
+
+@keyframes actionIn {
+	from {
+		opacity: 0;
+		transform: translateY(12px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+.pictogram {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.pictogram svg {
+	filter: drop-shadow(0 4px 12px rgba(59, 130, 246, 0.15));
+}
+
+/* GSM Info Panel */
+.gsm-info-panel {
+	width: 100%;
+	max-width: 500px;
+	background: rgba(59, 130, 246, 0.08);
+	border: 1px solid rgba(59, 130, 246, 0.25);
+	border-radius: 12px;
+	padding: 16px;
+	margin-top: 16px;
+	animation: fadeInUp 400ms ease-out;
+}
+
+@keyframes fadeInUp {
+	from {
+		opacity: 0;
+		transform: translateY(12px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+.gsm-info-header {
+	font-size: 15px;
+	font-weight: 700;
+	color: #1e40af;
+	margin-bottom: 12px;
+	text-align: left;
+}
+
+.gsm-info-grid {
+	display: grid;
+	gap: 10px;
+	margin-bottom: 12px;
+}
+
+.gsm-info-item {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 8px 12px;
+	background: var(--surface);
+	border-radius: 8px;
+	border: 1px solid var(--border);
+}
+
+.gsm-info-label {
+	font-size: 13px;
+	color: var(--muted);
+	font-weight: 600;
+}
+
+.gsm-info-value {
+	font-size: 14px;
+	color: var(--text);
+	font-weight: 600;
+	font-family: 'Courier New', monospace;
+}
+
+.gsm-info-waiting {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 12px;
+	background: rgba(245, 158, 11, 0.1);
+	border: 1px solid rgba(245, 158, 11, 0.3);
+	border-radius: 8px;
+	color: #92400e;
+	font-size: 14px;
+	font-weight: 600;
+	animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+	0%, 100% { opacity: 1; }
+	50% { opacity: 0.7; }
+}
+
+.gsm-info-success {
+	padding: 12px;
+	background: rgba(34, 197, 94, 0.1);
+	border: 1px solid rgba(34, 197, 94, 0.3);
+	border-radius: 8px;
+	color: #15803d;
+	font-size: 14px;
+	font-weight: 600;
+}
+
+.spinner {
+	width: 16px;
+	height: 16px;
+	border: 2px solid rgba(245, 158, 11, 0.3);
+	border-top-color: #f59e0b;
+	border-radius: 50%;
+	animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+	to { transform: rotate(360deg); }
+}
