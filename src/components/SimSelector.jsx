@@ -22,8 +22,8 @@ function SimSelector({
           style={{ width: '100%' }}
         >
           <option value="">-- Sélectionner une carte SIM --</option>
-          {options.map((opt) => (
-            <option key={opt.value} value={opt.value}>{opt.label}</option>
+          {options.map((opt, idx) => (
+            <option key={opt.value || `sim-${idx}`} value={opt.value}>{opt.label}</option>
           ))}
         </select>
       </div>

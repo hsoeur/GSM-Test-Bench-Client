@@ -84,7 +84,7 @@ function Product({ productLabel, simSelectId, currentOperationNumber }) {
 
   const selectedSimPhone = useMemo(() => {
     if (!selectedSim) return ''
-    const sim = simList.find((s) => String(s?.uid || '') === String(selectedSim))
+    const sim = simList.find((s) => String(s?.simCardUid || '') === String(selectedSim))
     return String(sim?.phoneNumber || '')
   }, [simList, selectedSim])
 

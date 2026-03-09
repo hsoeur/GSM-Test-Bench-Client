@@ -55,8 +55,8 @@ export const ENDPOINTS = {
   operatorsCurrent: join(API_BASES.MO, 'api/Users/current'),
   // Sim cards
   // Previously: api/SimCard/GetCollectionSimCards
-  // Now:       api/SimCard/all
-  simCards: join(API_BASES.MO, 'api/SimCard/all'),
+  // Now:       api/SimCards/all
+  simCards: join(API_BASES.MO, 'api/SimCards/all'),
 }
 
 export default { API_BASES, ENDPOINTS }

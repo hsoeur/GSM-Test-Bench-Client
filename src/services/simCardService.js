@@ -9,7 +9,8 @@ export async function getSimCards(timeoutMs = 5000) {
       headers: { accept: 'application/json' },
       timeout: timeoutMs,
     })
-    const list = Array.isArray(data) ? data : []
+    // Filter out invalid entries (must have simCardUid)
+    const list = (Array.isArray(data) ? data : []).filter((s) => s && s.simCardUid)
     // Optional sort: provider then simCardNumber for usability
     list.sort((a, b) => {
       const pr = (a?.provider || '').localeCompare(b?.provider || '', 'fr', { sensitivity: 'base' })
@@ -24,7 +25,7 @@ export async function getSimCards(timeoutMs = 5000) {
 
 export function toSimOption(sim) {
   if (!sim) return { value: '', label: '' }
-  const uid = String(sim.uid || '')
+  const uid = String(sim.simCardUid || '')
   const num = String(sim.simCardNumber || '').trim()
   const provider = String(sim.provider || '').trim()
   const phone = String(sim.phoneNumber || '').trim()
