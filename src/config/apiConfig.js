@@ -13,8 +13,8 @@ const join = (base, path) => {
 export const API_BASES = {
   // Hardcoded bases (no env). Update here if backends move.
   TEST_GSM: withTrailingSlash('http://localhost:5001'),
-  DATA: withTrailingSlash('http://127.0.0.1:18080'),
-  MO: withTrailingSlash('http://127.0.0.1:18080'),
+  DATA: withTrailingSlash('http://127.0.0.1:5258'),
+  MO: withTrailingSlash('http://127.0.0.1:5258'),
 }
 
 export const ENDPOINTS = {
@@ -34,16 +34,16 @@ export const ENDPOINTS = {
   ),
   // Product Traceability N-1 check
   // Previously: api/ProductTraceability/HasPreviousOperationOkStatus
-  // Now:       api/ProductTraceability/has-previous-operation-ok-status
+  // Now:       api/ProductTraceabilities/has-previous-operation-ok-status
   productTraceabilityHasPrevOk: ({ productUid, serialNumber, currentOperationNumber } = {}) =>
     join(
       API_BASES.MO,
-      `api/ProductTraceability/has-previous-operation-ok-status?productUid=${encodeURIComponent(productUid || '')}&serialNumber=${encodeURIComponent(serialNumber || '')}&currentOperationNumber=${encodeURIComponent(currentOperationNumber ?? '')}`,
+      `api/ProductTraceabilities/has-previous-operation-ok-status?productUid=${encodeURIComponent(productUid || '')}&serialNumber=${encodeURIComponent(serialNumber || '')}&currentOperationNumber=${encodeURIComponent(currentOperationNumber ?? '')}`,
     ),
   // Product Traceability
   // Previously: api/ProductTraceability/CreateProductTraceability
-  // Now:       api/ProductTraceability/create
-  productTraceabilityCreate: join(API_BASES.MO, 'api/ProductTraceability/create'),
+  // Now:       api/ProductTraceabilities/create
+  productTraceabilityCreate: join(API_BASES.MO, 'api/ProductTraceabilities/create'),
   // New operations endpoint for a product UID
   // Previously: api/Operation/GetCollectionOperationBasic
   // Now:       api/Operation/basic-by-product-uid
@@ -52,7 +52,7 @@ export const ENDPOINTS = {
     `api/Operation/basic-by-product-uid?productUid=${encodeURIComponent(productUid || '')}`,
   ),
   // Operators
-  operatorsCurrent: join(API_BASES.MO, 'api/Operator/current'),
+  operatorsCurrent: join(API_BASES.MO, 'api/Users/current'),
   // Sim cards
   // Previously: api/SimCard/GetCollectionSimCards
   // Now:       api/SimCard/all

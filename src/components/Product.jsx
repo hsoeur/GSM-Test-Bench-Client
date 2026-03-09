@@ -334,6 +334,16 @@ function Product({ productLabel, simSelectId, currentOperationNumber }) {
 
             {/* Removed OF context display after label scan per request */}
 
+            {moError && (
+              <ImpactMessage
+                variant="error"
+                title="Erreur de traçabilité"
+                actions={<button className="btn" onClick={resetAll}>Recommencer</button>}
+              >
+                {moError}
+              </ImpactMessage>
+            )}
+
             {prevOpOk === true && showPrevOpOkBanner && (
               <ImpactMessage variant="success" title="Produit OK N-1">
                 Étape précédente validée. Vous pouvez continuer.
