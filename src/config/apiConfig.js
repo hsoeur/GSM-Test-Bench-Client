@@ -32,14 +32,16 @@ export const ENDPOINTS = {
     API_BASES.MO,
     `api/ManufacturingOrder/by-manufacturing-order-uid?manufacturingOrderUid=${encodeURIComponent(uid || '')}`,
   ),
-  // Product Traceability N-1 check
+  
+  // ⚠️ DEPRECATED: Product Traceability N-1 check (no longer used)
   // Previously: api/ProductTraceability/HasPreviousOperationOkStatus
-  // Now:       api/ProductTraceabilities/has-previous-operation-ok-status
-  productTraceabilityHasPrevOk: ({ productUid, serialNumber, currentOperationNumber } = {}) =>
-    join(
-      API_BASES.MO,
-      `api/ProductTraceabilities/has-previous-operation-ok-status?productUid=${encodeURIComponent(productUid || '')}&serialNumber=${encodeURIComponent(serialNumber || '')}&currentOperationNumber=${encodeURIComponent(currentOperationNumber ?? '')}`,
-    ),
+  // Now using: productTraceabilityLatest with previousOperationUid from test sequence
+  // productTraceabilityHasPrevOk: ({ productUid, serialNumber, currentOperationNumber } = {}) =>
+  //   join(
+  //     API_BASES.MO,
+  //     `api/ProductTraceabilities/has-previous-operation-ok-status?productUid=${encodeURIComponent(productUid || '')}&serialNumber=${encodeURIComponent(serialNumber || '')}&currentOperationNumber=${encodeURIComponent(currentOperationNumber ?? '')}`,
+  //   ),
+  
   // Product Traceability
   // Previously: api/ProductTraceability/CreateProductTraceability
   // Now:       api/ProductTraceabilities/create

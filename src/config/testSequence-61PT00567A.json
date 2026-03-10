@@ -2,13 +2,14 @@
   "testSequence": [
     {
       "id": "scan-label",
-      "instruction": "Scanner l'étiquette de lot du produit 61PT00567A.",
+      "instruction": "Scanner l'étiquette de lot.",
       "pictogram": "barcode-scan",
       "actionType": "scan",
       "actionConfig": {
         "placeholder": "Scannez ou saisissez le code...",
         "validation": "label",
-        "autoFocus": true
+        "autoFocus": true,
+        "previousOperationUid": 55
       }
     },
     {

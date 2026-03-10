@@ -2,13 +2,28 @@
   "testSequence": [
     {
       "id": "scan-label",
-      "instruction": "Scanner l'étiquette de lot du produit.",
+      "instruction": "Scanner l'étiquette de la carte mère.",
       "pictogram": "barcode-scan",
       "actionType": "scan",
       "actionConfig": {
-        "placeholder": "Scannez ou saisissez le code...",
+        "placeholder": "Scannez la carte mère...",
         "validation": "label",
-        "autoFocus": true
+        "autoFocus": true,
+        "previousOperationUid": 55,
+        "productUid": "61PT00505F"
+      }
+    },
+    {
+      "id": "scan-label-2",
+      "instruction": "Scanner l'étiquette de la carte fille.",
+      "pictogram": "barcode-scan",
+      "actionType": "scan",
+      "actionConfig": {
+        "placeholder": "Scannez la carte fille...",
+        "validation": "label",
+        "autoFocus": true,
+        "previousOperationUid": 55,
+        "productUid": "61PT00570D"
       }
     },
     {
@@ -74,9 +89,10 @@
       "pictogram": "check-circle",
       "actionType": "button",
       "actionConfig": {
-        "label": "Tester une autre carte",
+        "label": "Tester un autre ensemble",
         "variant": "primary"
       }
     }
   ]
 }
+  

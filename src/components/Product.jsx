@@ -3,12 +3,12 @@ import TestStep from './TestStep.jsx'
 import ImpactMessage from './ImpactMessage.jsx'
 import { callGsm, hangupGsm } from '../services/gsmService.js'
 import { getManufacturingOrderByUid } from '../services/manufacturingOrderService.js'
-import { hasPreviousOperationOkStatus, createProductTraceability, getLatestProductTraceability } from '../services/productTraceabilityService.js'
+import { createProductTraceability, getLatestProductTraceability } from '../services/productTraceabilityService.js'
 import { useOperator } from '../context/OperatorContext.jsx'
 import { getSimCards, toSimOption } from '../services/simCardService.js'
 import { getTestSequenceForProduct } from '../config/productTestSequenceMapping.js'
 
-function Product({ productLabel, simSelectId, currentOperationNumber }) {
+function Product({ productLabel, simSelectId, currentOperationNumber, productUid, manufacturingOrderUid }) {
   const { operator } = useOperator()
   
   const STATUS_UID = useMemo(() => ({
@@ -19,10 +19,7 @@ function Product({ productLabel, simSelectId, currentOperationNumber }) {
   // Test sequence state
   const [currentStepIndex, setCurrentStepIndex] = useState(0)
   const [testData, setTestData] = useState({
-    labelScan: '',
-    ofUid: '',
-    serialLabel: '',
-    productUid: '',
+    scannedProducts: [], // Array of { labelScan, serialLabel, ofUid, productUid }
     selectedSim: '',
     simOptions: [],
     simList: [],
@@ -37,29 +34,34 @@ function Product({ productLabel, simSelectId, currentOperationNumber }) {
   const [loading, setLoading] = useState(false)
   const [retestConfirmation, setRetestConfirmation] = useState(null) // { productUid, serialLabel, ofUid } when confirmation needed
   const [testSequence, setTestSequence] = useState(null)
+  const [testSequenceFileName, setTestSequenceFileName] = useState('')
   const didSubmitRef = useRef(false)
+  const scannedProductsRef = useRef([]) // Ref synchrone pour les produits scannés
+  const testStartTsRef = useRef(null) // Ref synchrone pour le timestamp de début
 
-  const steps = useMemo(() => testSequence?.testSequence || [], [testSequence])
+  // Default first step when no test sequence is loaded yet
+  const defaultFirstStep = {
+    id: 'scan-label',
+    instruction: "Scanner l'étiquette de lot du produit.",
+    pictogram: 'barcode-scan',
+    actionType: 'scan',
+    actionConfig: {
+      placeholder: 'Scannez ou saisissez le code...',
+      validation: 'label',
+      autoFocus: true
+    }
+  }
+
+  const steps = useMemo(() => {
+    const sequence = testSequence?.testSequence || []
+    // If no sequence loaded yet and no products scanned, show default scan step
+    if (sequence.length === 0 && testData.scannedProducts.length === 0) {
+      return [defaultFirstStep]
+    }
+    return sequence
+  }, [testSequence, testData.scannedProducts])
+  
   const currentStep = steps[currentStepIndex] || null
-
-  // Load default test sequence on mount
-  useEffect(() => {
-    let cancelled = false
-    ;(async () => {
-      try {
-        const defaultSequence = await import('../config/testSequence-default.json')
-        if (!cancelled) {
-          setTestSequence(defaultSequence.default || defaultSequence)
-        }
-      } catch (e) {
-        console.error('Failed to load default test sequence:', e)
-        if (!cancelled) {
-          setError("Impossible de charger la séquence de test par défaut.")
-        }
-      }
-    })()
-    return () => { cancelled = true }
-  }, [])
 
   // Load SIM cards on mount
   useEffect(() => {
@@ -101,36 +103,49 @@ function Product({ productLabel, simSelectId, currentOperationNumber }) {
     }
   }, [simSelectId])
 
-  // Load test sequence dynamically based on productUid
+  // Load test sequence when productUid is provided (from Manufacturing Order scan)
   useEffect(() => {
+    if (!productUid) return
+
     let cancelled = false
     ;(async () => {
+      console.log('')
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+      console.log('📋 CHARGEMENT DE LA SÉQUENCE DE TEST (depuis OF)')
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+      console.log('🔍 ProductUid (OF):', productUid)
+      console.log('🏷️  Manufacturing Order:', manufacturingOrderUid)
+      
+      const sequenceFileName = getTestSequenceForProduct(productUid)
+      
+      console.log('📄 Fichier sélectionné:', sequenceFileName)
+      
       try {
-        const productUid = testData.productUid || ''
-        const sequenceFileName = getTestSequenceForProduct(productUid)
-        
-        // Dynamic import of the test sequence file
         const sequenceModule = await import(`../config/${sequenceFileName}`)
-        
         if (!cancelled) {
-          setTestSequence(sequenceModule.default || sequenceModule)
+          const loadedSequence = sequenceModule.default || sequenceModule
+          setTestSequence(loadedSequence)
+          setTestSequenceFileName(sequenceFileName)
+          
+          console.log('✅ Séquence chargée avec succès!')
+          console.log('📊 Nombre d\'étapes:', loadedSequence?.testSequence?.length || 0)
+          console.log('📝 Contenu de la séquence:', JSON.stringify(loadedSequence, null, 2))
+          console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+          console.log('')
         }
       } catch (e) {
-        console.error('Failed to load test sequence:', e)
         if (!cancelled) {
-          // Fallback to default sequence
-          try {
-            const defaultSequence = await import('../config/testSequence-default.json')
-            setTestSequence(defaultSequence.default || defaultSequence)
-          } catch (fallbackError) {
-            console.error('Failed to load default test sequence:', fallbackError)
-            setError("Impossible de charger la séquence de test.")
-          }
+          console.error('❌ ERREUR lors du chargement de la séquence')
+          console.error('   └─ Fichier:', sequenceFileName)
+          console.error('   └─ Erreur:', e)
+          console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+          console.log('')
+          setError(`Impossible de charger la séquence de test: ${sequenceFileName}`)
         }
       }
     })()
     return () => { cancelled = true }
-  }, [testData.productUid])
+  }, [productUid, manufacturingOrderUid])
 
   const selectedSimPhone = useMemo(() => {
     const { selectedSim, simList } = testData
@@ -141,12 +156,11 @@ function Product({ productLabel, simSelectId, currentOperationNumber }) {
 
   const resetAll = () => {
     didSubmitRef.current = false
+    scannedProductsRef.current = []
+    testStartTsRef.current = null
     setCurrentStepIndex(0)
     setTestData(prev => ({
-      labelScan: '',
-      ofUid: '',
-      serialLabel: '',
-      productUid: '',
+      scannedProducts: [],
       selectedSim: '',
       simOptions: prev.simOptions,
       simList: prev.simList,
@@ -164,32 +178,108 @@ function Product({ productLabel, simSelectId, currentOperationNumber }) {
   const submitTraceability = async (status) => {
     try {
       const machineUid = import.meta.env.VITE_MACHINE_UID || 'MO03A'
-      const manufacturingOrderUid = testData.ofUid || (localStorage.getItem('current:manufacturingOrderUid') || '')
       const statusUid = status === 'OK' ? STATUS_UID.OK : STATUS_UID.KO
-      const payload = {
-        productUid: String(testData.productUid || localStorage.getItem('current:productUid') || ''),
-        productSerialNumber: String(testData.serialLabel || localStorage.getItem('current:serialNumber') || ''),
-        productStatusUid: String(statusUid || ''),
-        creationDate: new Date().toISOString(),
-        manufacturingOrderUid: String(manufacturingOrderUid || ''),
-        userUid: operator ? String(operator.userUid) : '',
-        cycleTime: (() => {
-          if (!testData.testStartTs) return ''
-          const secs = (Date.now() - testData.testStartTs) / 1000
-          return String(Number(secs.toFixed(1)))
-        })(),
-        operationNumber: currentOperationNumber != null ? String(currentOperationNumber) : '',
-        machineUid: String(machineUid),
+      
+      // Utiliser la ref au lieu du state pour avoir les données synchrones
+      const productsToTrace = scannedProductsRef.current
+      
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+      console.log('💾 ENREGISTREMENT TRAÇABILITÉ')
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+      console.log('📊 Statut:', status)
+      console.log('📦 Nombre de produits:', productsToTrace.length)
+      console.log('')
+      
+      // Créer une traçabilité pour chaque produit scanné
+      for (let i = 0; i < productsToTrace.length; i++) {
+        const product = productsToTrace[i]
+        
+        console.log(`🌐 API CALL - createProductTraceability [Produit ${i + 1}/${productsToTrace.length}]`)
+        console.log('   └─ Endpoint: /api/ProductTraceability')
+        
+        const payload = {
+          productUid: String(product.productUid || ''),
+          productSerialNumber: String(product.serialLabel || ''),
+          productStatusUid: String(statusUid || ''),
+          creationDate: new Date().toISOString(),
+          manufacturingOrderUid: String(product.ofUid || ''),
+          userUid: operator ? String(operator.userUid) : '',
+          cycleTime: (() => {
+            if (!testStartTsRef.current) return ''
+            const secs = (Date.now() - testStartTsRef.current) / 1000
+            return String(Number(secs.toFixed(1)))
+          })(),
+          operationNumber: currentOperationNumber != null ? String(currentOperationNumber) : '',
+          machineUid: String(machineUid),
+        }
+        
+        console.log('   └─ Payload:')
+        console.log('      • productUid:', payload.productUid)
+        console.log('      • productSerialNumber:', payload.productSerialNumber)
+        console.log('      • productStatusUid:', payload.productStatusUid)
+        console.log('      • manufacturingOrderUid:', payload.manufacturingOrderUid)
+        console.log('      • userUid:', payload.userUid)
+        console.log('      • cycleTime:', payload.cycleTime, 's')
+        console.log('      • operationNumber:', payload.operationNumber)
+        console.log('      • machineUid:', payload.machineUid)
+        console.log('      • creationDate:', payload.creationDate)
+        
+        if (payload.productUid && payload.productSerialNumber && payload.manufacturingOrderUid) {
+          const result = await createProductTraceability(payload)
+          console.log('📥 RÉPONSE:')
+          console.log('   └─ Status HTTP:', result?.status || 'N/A')
+          console.log('   └─ Success:', result?.ok || false)
+          console.log('   └─ Data:', result?.data || null)
+          console.log('')
+        } else {
+          console.warn('⚠️  Données incomplètes, traçabilité non créée')
+          console.log('   └─ productUid:', payload.productUid || '(manquant)')
+          console.log('   └─ productSerialNumber:', payload.productSerialNumber || '(manquant)')
+          console.log('   └─ manufacturingOrderUid:', payload.manufacturingOrderUid || '(manquant)')
+          console.log('')
+        }
       }
-      if (payload.productUid && payload.productSerialNumber && payload.manufacturingOrderUid) {
-        await createProductTraceability(payload)
-      }
-    } catch (_) {
+      
+      console.log('✅ Traçabilités enregistrées')
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+      console.log('')
+    } catch (err) {
+      console.error('❌ ERREUR lors de l\'enregistrement de la traçabilité')
+      console.error('   └─', err)
+      console.log('')
       // Ignore errors to avoid blocking UI
     }
   }
 
   const handleConfirmRetest = () => {
+    // Démarrer le chrono si c'est le premier produit
+    if (scannedProductsRef.current.length === 0) {
+      testStartTsRef.current = Date.now()
+      setTestData(prev => ({ ...prev, testStartTs: Date.now() }))
+    }
+    
+    // Ajouter le produit confirmé à la liste des produits scannés
+    if (retestConfirmation) {
+      const scannedProduct = {
+        labelScan: '', // On ne l'a pas stocké dans retestConfirmation
+        serialLabel: retestConfirmation.serialLabel,
+        ofUid: retestConfirmation.ofUid,
+        productUid: retestConfirmation.productUid
+      }
+      
+      // Ajouter à la ref
+      scannedProductsRef.current = [...scannedProductsRef.current, scannedProduct]
+      
+      // Ajouter au state
+      setTestData(prev => ({
+        ...prev,
+        scannedProducts: [...prev.scannedProducts, scannedProduct]
+      }))
+      
+      console.log('✅ Produit ajouté après confirmation de retest')
+      console.log('📊 Total produits scannés:', scannedProductsRef.current.length)
+    }
+    
     setRetestConfirmation(null)
     setCurrentStepIndex(prev => prev + 1)
   }
@@ -204,83 +294,179 @@ function Product({ productLabel, simSelectId, currentOperationNumber }) {
     setLoading(true)
 
     try {
-      switch (stepId) {
-        case 'scan-label': {
-          // Parse label and fetch MO
-          const raw = String(value)
-          const parts = raw.split(';').map((p) => p.trim())
-          const serialPart = parts[1] || ''
-          const ofPart = parts[2] || ''
+      // Gérer tous les scans (scan-label, scan-label-2, etc.)
+      if (stepId.startsWith('scan-label')) {
+        // Parse label and fetch MO
+        const raw = String(value)
+        const parts = raw.split(';').map((p) => p.trim())
+        const serialPart = parts[1] || ''
+        const ofPart = parts[2] || ''
 
-          setTestData(prev => ({
-            ...prev,
-            labelScan: raw,
-            serialLabel: serialPart,
-            ofUid: ofPart,
-            testStartTs: Date.now(),
-          }))
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+        console.log('📦 SCAN PRODUIT')
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+        console.log('🏷️  Étiquette scannée:', raw)
+        console.log('🔢 Numéro de série:', serialPart)
+        console.log('📋 OF:', ofPart)
+        console.log('')
 
-          // Persist context
-          try {
-            localStorage.setItem('current:manufacturingOrderUid', ofPart)
-            localStorage.setItem('current:serialNumber', serialPart)
-          } catch {}
+        // Démarrer le chrono au premier scan
+        if (scannedProductsRef.current.length === 0) {
+          testStartTsRef.current = Date.now()
+          setTestData(prev => ({ ...prev, testStartTs: Date.now() }))
+        }
 
-          const { ok, data, status } = await getManufacturingOrderByUid(ofPart)
-          if (!ok || !data) {
-            setError(`Échec récupération OF (${status})`)
+        // Si ce n'est pas le premier scan, vérifier que c'est le même OF
+        if (scannedProductsRef.current.length > 0) {
+          const firstOf = scannedProductsRef.current[0].ofUid
+          if (ofPart !== firstOf) {
+            console.error('❌ OF différent détecté:', ofPart, '≠', firstOf)
+            setError(`L'OF scanné (${ofPart}) ne correspond pas au premier OF (${firstOf})`)
             return
           }
+          console.log('✅ OF validé (identique au premier scan)')
+          console.log('')
+        }
 
-          const productUid = String(data.productUid || '')
-          setTestData(prev => ({ ...prev, productUid }))
-          
-          try {
-            localStorage.setItem('current:productUid', productUid)
-          } catch {}
+        // Récupérer les infos de l'OF pour obtenir le productUid
+        console.log('🌐 API CALL #1 - getManufacturingOrderByUid')
+        console.log('   └─ Endpoint: /api/ManufacturingOrder/by-manufacturing-order-uid')
+        console.log('   └─ Paramètre: manufacturingOrderUid =', ofPart)
+        
+        const { ok, data, status } = await getManufacturingOrderByUid(ofPart)
+        
+        console.log('📥 RÉPONSE:')
+        console.log('   └─ Status HTTP:', status)
+        console.log('   └─ Success:', ok)
+        console.log('   └─ Data:', data)
+        console.log('')
 
-          // Check previous operation status
-          const { ok: ok2, status: st2, value: prevOk, message } = await hasPreviousOperationOkStatus(
-            productUid,
+        if (!ok || !data) {
+          console.error('❌ Échec récupération OF - Status:', status)
+          setError(`Échec récupération OF (${status})`)
+          return
+        }
+
+        const productUid = String(data.productUid || '')
+        console.log('✅ ProductUid récupéré:', productUid)
+        console.log('')
+
+        // Check previous operation status using operationUid from current step config
+        const loadedSteps = testSequence?.testSequence || []
+        const currentStepData = loadedSteps.find(step => step.id === stepId)
+        const previousOperationUid = currentStepData?.actionConfig?.previousOperationUid || null
+        
+        // Use productUid from step config if specified, otherwise use the one from Manufacturing Order
+        const productUidForCheck = currentStepData?.actionConfig?.productUid || productUid
+        
+        if (previousOperationUid) {
+          console.log('🌐 API CALL #2 - getLatestProductTraceability (vérification N-1)')
+          console.log('   └─ Endpoint: /api/ProductTraceabilities/latest-by-product-serial-and-operation')
+          console.log('   └─ Paramètres:')
+          console.log('      • productUid:', productUidForCheck, currentStepData?.actionConfig?.productUid ? '(depuis config étape)' : '(depuis OF)')
+          console.log('      • serialNumber:', serialPart)
+          console.log('      • operationUid:', previousOperationUid)
+
+          const { ok: ok2, status: st2, data: prevTrace } = await getLatestProductTraceability(
+            productUidForCheck,
             serialPart,
-            currentOperationNumber,
+            previousOperationUid,
           )
 
+          console.log('📥 RÉPONSE:')
+          console.log('   └─ Status HTTP:', st2)
+          console.log('   └─ Success:', ok2)
+          console.log('   └─ Data:', prevTrace)
+          console.log('')
+
           if (!ok2) {
-            const serverMsg = (message || '').trim()
-            if (serverMsg) {
-              setError(serverMsg)
-            } else if (st2 === 404) {
+            console.error('❌ Échec vérification étape précédente')
+            if (st2 === 404) {
+              console.error('   └─ 404: Aucune traçabilité trouvée')
               setError("Aucune traçabilité trouvée pour l'opération précédente.")
             } else {
+              console.error('   └─ Status HTTP:', st2)
               setError(`Échec vérification étape précédente (${st2})`)
             }
             return
           }
 
-          if (!prevOk) {
+          // Vérifier que la traçabilité précédente a un statut OK
+          if (!prevTrace || prevTrace.productStatusUid !== STATUS_UID.OK) {
+            console.error('❌ Produit NON VALIDE à l\'étape précédente')
+            console.log('   └─ Status trouvé:', prevTrace?.productStatusUid || '(aucun)')
             setError("Produit non valide à l'étape de fabrication précédente.")
             return
           }
 
-          // Check if product already tested for current operation
-          const { ok: ok3, status: st3, data: latestTrace } = await getLatestProductTraceability(
-            productUid,
-            serialPart,
-            currentOperationNumber,
-          )
-
-          if (ok3 && latestTrace && latestTrace.productStatusUid === STATUS_UID.OK) {
-            // Product already tested OK - ask for confirmation to retest
-            setRetestConfirmation({ productUid, serialLabel: serialPart, ofUid: ofPart })
-            return
-          }
-
-          // Move to next step
-          setCurrentStepIndex(prev => prev + 1)
-          break
+          console.log('✅ Produit VALIDE à l\'étape précédente')
+          console.log('   └─ Status:', prevTrace.productStatusUid)
+          console.log('')
+        } else {
+          console.log('⚠️  Aucune vérification N-1 configurée (previousOperationUid manquant)')
+          console.log('')
         }
 
+        // Check if product already tested for current operation
+        console.log('🌐 API CALL #3 - getLatestProductTraceability')
+        console.log('   └─ Endpoint: /api/ProductTraceability/latest')
+        console.log('   └─ Paramètres:')
+        console.log('      • productUid:', productUidForCheck)
+        console.log('      • serialNumber:', serialPart)
+        console.log('      • operationNumber:', currentOperationNumber)
+
+        const { ok: ok3, status: st3, data: latestTrace } = await getLatestProductTraceability(
+          productUidForCheck,
+          serialPart,
+          currentOperationNumber,
+        )
+
+        console.log('📥 RÉPONSE:')
+        console.log('   └─ Status HTTP:', st3)
+        console.log('   └─ Success:', ok3)
+        console.log('   └─ Data:', latestTrace)
+        console.log('')
+
+        if (ok3 && latestTrace && latestTrace.productStatusUid === STATUS_UID.OK) {
+          // Product already tested OK - ask for confirmation to retest
+          console.warn('⚠️  Produit déjà testé BON à cette opération')
+          console.log('   └─ Demande de confirmation de retest...')
+          console.log('')
+          setRetestConfirmation({ productUid: productUidForCheck, serialLabel: serialPart, ofUid: ofPart })
+          return
+        }
+
+        console.log('✅ Produit non encore testé (ou KO) à cette opération')
+        console.log('')
+
+        // Créer l'objet produit
+        const scannedProduct = {
+          labelScan: raw,
+          serialLabel: serialPart,
+          ofUid: ofPart,
+          productUid: productUidForCheck
+        }
+
+        // Ajouter le produit scanné à la ref (synchrone)
+        scannedProductsRef.current = [...scannedProductsRef.current, scannedProduct]
+
+        // Ajouter le produit scanné au state (pour l'affichage)
+        setTestData(prev => ({
+          ...prev,
+          scannedProducts: [...prev.scannedProducts, scannedProduct]
+        }))
+
+        console.log('✅ Produit ajouté à la liste des produits scannés')
+        console.log('📊 Total produits scannés:', scannedProductsRef.current.length)
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+        console.log('')
+
+        // Move to next step
+        setCurrentStepIndex(prev => prev + 1)
+        return
+      }
+
+      switch (stepId) {
         case 'select-sim': {
           setTestData(prev => ({ ...prev, selectedSim: value }))
           try {
@@ -392,8 +578,30 @@ function Product({ productLabel, simSelectId, currentOperationNumber }) {
     <div className={`panel ${isGood ? 'good' : (isBad ? 'bad' : '')}`}>
       <div className="panel-header">
         <h2>{productLabel}</h2>
-        {testData.serialLabel && (
-          <span className="panel-subtitle">Code en test: {testData.serialLabel}</span>
+        {testSequenceFileName && (
+          <div className="panel-info" style={{ 
+            fontSize: '0.95rem', 
+            fontWeight: '600',
+            color: '#2563eb',
+            marginTop: '0.5rem',
+            padding: '0.5rem',
+            backgroundColor: '#eff6ff',
+            borderRadius: '4px',
+            border: '1px solid #bfdbfe'
+          }}>
+            📋 Séquence de test : {testSequenceFileName}
+          </div>
+        )}
+        {testData.scannedProducts.length > 0 && (
+          <span className="panel-subtitle">
+            {testData.scannedProducts.map((p, idx) => (
+              <span key={idx}>
+                {idx > 0 && ' | '}
+                {testData.scannedProducts.length > 1 ? `Carte ${idx + 1}: ` : 'Code en test: '}
+                {p.serialLabel}
+              </span>
+            ))}
+          </span>
         )}
       </div>
       

@@ -1,28 +1,29 @@
 import { ENDPOINTS } from '../config/apiConfig.js'
 import { request, getJson } from './http.js'
 
-export async function hasPreviousOperationOkStatus(productUid, serialNumber, currentOperationNumber) {
-  if (!productUid || !serialNumber) return { ok: false, status: 400, value: null }
-  const url = typeof ENDPOINTS.productTraceabilityHasPrevOk === 'function'
-    ? ENDPOINTS.productTraceabilityHasPrevOk({ productUid, serialNumber, currentOperationNumber })
-    : ENDPOINTS.productTraceabilityHasPrevOk
-  const { ok, status, data } = await getJson(url, {
-    headers: { accept: 'application/json' },
-    timeout: 5000,
-  })
-  // Interpret response robustly: boolean, { value }, or string "true"/"false"
-  let value = null
-  if (typeof data === 'boolean') {
-    value = data
-  } else if (data && typeof data === 'object') {
-    if (typeof data.value === 'boolean') value = data.value
-    else if (typeof data.okStatus === 'boolean') value = data.okStatus
-  } else if (typeof data === 'string') {
-    value = String(data).trim().toLowerCase() === 'true'
-  }
-  const message = typeof data === 'string' ? data : ''
-  return { ok, status, value, message }
-}
+// ⚠️ DEPRECATED: This function is no longer used. Use getLatestProductTraceability instead.
+// export async function hasPreviousOperationOkStatus(productUid, serialNumber, currentOperationNumber) {
+//   if (!productUid || !serialNumber) return { ok: false, status: 400, value: null }
+//   const url = typeof ENDPOINTS.productTraceabilityHasPrevOk === 'function'
+//     ? ENDPOINTS.productTraceabilityHasPrevOk({ productUid, serialNumber, currentOperationNumber })
+//     : ENDPOINTS.productTraceabilityHasPrevOk
+//   const { ok, status, data } = await getJson(url, {
+//     headers: { accept: 'application/json' },
+//     timeout: 5000,
+//   })
+//   // Interpret response robustly: boolean, { value }, or string "true"/"false"
+//   let value = null
+//   if (typeof data === 'boolean') {
+//     value = data
+//   } else if (data && typeof data === 'object') {
+//     if (typeof data.value === 'boolean') value = data.value
+//     else if (typeof data.okStatus === 'boolean') value = data.okStatus
+//   } else if (typeof data === 'string') {
+//     value = String(data).trim().toLowerCase() === 'true'
+//   }
+//   const message = typeof data === 'string' ? data : ''
+//   return { ok, status, value, message }
+// }
 
 export async function createProductTraceability(payload) {
   const url = ENDPOINTS.productTraceabilityCreate
@@ -48,4 +49,4 @@ export async function getLatestProductTraceability(productUid, serialNumber, ope
   return { ok, status, data }
 }
 
-export default { hasPreviousOperationOkStatus, createProductTraceability, getLatestProductTraceability }
+export default { createProductTraceability, getLatestProductTraceability }
