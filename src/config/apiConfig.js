@@ -65,6 +65,10 @@ export const ENDPOINTS = {
   // Previously: api/SimCard/GetCollectionSimCards
   // Now:       api/SimCards/all
   simCards: join(API_BASES.MO, 'api/SimCards/all'),
+  
+  // Kit Traceability (Mother/Daughter product association)
+  // POST api/KitTraceability/create
+  kitTraceabilityCreate: join(API_BASES.MO, 'api/KitTraceability/create'),
 }
 
 export default { API_BASES, ENDPOINTS }
