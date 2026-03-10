@@ -48,7 +48,7 @@
     },
     {
       "id": "check-init",
-      "instruction": "Le produit est-il bien initialisé ? Led D10 verte fixe ?",
+      "instruction": "Le produit est-il bien initialisé ? Led D14 verte fixe ?",
       "pictogram": "power-check",
       "actionType": "choice",
       "actionConfig": {
@@ -72,20 +72,8 @@
       }
     },
     {
-      "id": "test-battery",
-      "instruction": "Tester basculement batterie. Attendre D9 rouge fixe.",
-      "pictogram": "battery-switch",
-      "actionType": "choice",
-      "actionConfig": {
-        "options": [
-          { "value": "ok", "label": "Bascule OK", "variant": "success" },
-          { "value": "ko", "label": "Bascule KO", "variant": "error" }
-        ]
-      }
-    },
-    {
       "id": "test-complete",
-      "instruction": "Test terminé. Débrancher batterie. Vous pouvez tester une nouvelle carte.",
+      "instruction": "Test terminé. Couper Alimentation, tout débrancher. Remettre bornier 3 points sur CO1. Vous pouvez tester une nouvelle carte.",
       "pictogram": "check-circle",
       "actionType": "button",
       "actionConfig": {
