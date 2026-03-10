@@ -6,7 +6,7 @@ import { getManufacturingOrderByUid } from '../services/manufacturingOrderServic
 import { hasPreviousOperationOkStatus, createProductTraceability, getLatestProductTraceability } from '../services/productTraceabilityService.js'
 import { useOperator } from '../context/OperatorContext.jsx'
 import { getSimCards, toSimOption } from '../services/simCardService.js'
-import testSequenceConfig from '../config/testSequence.json'
+import { getTestSequenceForProduct } from '../config/productTestSequenceMapping.js'
 
 function Product({ productLabel, simSelectId, currentOperationNumber }) {
   const { operator } = useOperator()
@@ -36,10 +36,30 @@ function Product({ productLabel, simSelectId, currentOperationNumber }) {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [retestConfirmation, setRetestConfirmation] = useState(null) // { productUid, serialLabel, ofUid } when confirmation needed
+  const [testSequence, setTestSequence] = useState(null)
   const didSubmitRef = useRef(false)
 
-  const steps = useMemo(() => testSequenceConfig.testSequence || [], [])
+  const steps = useMemo(() => testSequence?.testSequence || [], [testSequence])
   const currentStep = steps[currentStepIndex] || null
+
+  // Load default test sequence on mount
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      try {
+        const defaultSequence = await import('../config/testSequence-default.json')
+        if (!cancelled) {
+          setTestSequence(defaultSequence.default || defaultSequence)
+        }
+      } catch (e) {
+        console.error('Failed to load default test sequence:', e)
+        if (!cancelled) {
+          setError("Impossible de charger la séquence de test par défaut.")
+        }
+      }
+    })()
+    return () => { cancelled = true }
+  }, [])
 
   // Load SIM cards on mount
   useEffect(() => {
@@ -80,6 +100,37 @@ function Product({ productLabel, simSelectId, currentOperationNumber }) {
       // ignore
     }
   }, [simSelectId])
+
+  // Load test sequence dynamically based on productUid
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      try {
+        const productUid = testData.productUid || ''
+        const sequenceFileName = getTestSequenceForProduct(productUid)
+        
+        // Dynamic import of the test sequence file
+        const sequenceModule = await import(`../config/${sequenceFileName}`)
+        
+        if (!cancelled) {
+          setTestSequence(sequenceModule.default || sequenceModule)
+        }
+      } catch (e) {
+        console.error('Failed to load test sequence:', e)
+        if (!cancelled) {
+          // Fallback to default sequence
+          try {
+            const defaultSequence = await import('../config/testSequence-default.json')
+            setTestSequence(defaultSequence.default || defaultSequence)
+          } catch (fallbackError) {
+            console.error('Failed to load default test sequence:', fallbackError)
+            setError("Impossible de charger la séquence de test.")
+          }
+        }
+      }
+    })()
+    return () => { cancelled = true }
+  }, [testData.productUid])
 
   const selectedSimPhone = useMemo(() => {
     const { selectedSim, simList } = testData
