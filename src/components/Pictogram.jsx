@@ -1,4 +1,18 @@
 function Pictogram({ name, size = 120 }) {
+  // Si le nom est un fichier PNG, afficher l'image directement
+  if (name && name.endsWith('.png')) {
+    const imageSize = size * 3.515625 // 25% plus gros
+    return (
+      <div className="pictogram">
+        <img 
+          src={`/assets/${name}`} 
+          alt={name} 
+          style={{ width: imageSize, height: imageSize, objectFit: 'contain' }} 
+        />
+      </div>
+    )
+  }
+
   const renderIcon = () => {
     switch (name) {
       case 'barcode-scan':

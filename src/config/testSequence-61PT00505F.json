@@ -38,8 +38,8 @@
     },
     {
       "id": "insert-sim",
-      "instruction": "Insérer la carte SIM dans le produit, brancher le câble d'alimentation et mettre l'interrupteur sur ON",
-      "pictogram": "sim-insert",
+      "instruction": "Insérer la carte SIM dans le produit, brancher tout et mettre l'interrupteur sur ON",
+      "pictogram": "505_gray.png",
       "actionType": "button",
       "actionConfig": {
         "label": "Continuer",

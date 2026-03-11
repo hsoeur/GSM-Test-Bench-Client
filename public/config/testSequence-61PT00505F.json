@@ -3,7 +3,7 @@
     {
       "id": "scan-label",
       "instruction": "Scanner l'étiquette de la carte mère.",
-      "pictogram": "barcode-scan",
+      "pictogram": "mother.png",
       "actionType": "scan",
       "actionConfig": {
         "placeholder": "Scannez la carte mère...",
@@ -16,7 +16,7 @@
     {
       "id": "scan-label-2",
       "instruction": "Scanner l'étiquette de la carte fille.",
-      "pictogram": "barcode-scan",
+      "pictogram": "daughter.png",
       "actionType": "scan",
       "actionConfig": {
         "placeholder": "Scannez la carte fille...",
@@ -38,8 +38,8 @@
     },
     {
       "id": "insert-sim",
-      "instruction": "Insérer la carte SIM dans le produit, brancher le câble d'alimentation et mettre l'interrupteur sur ON",
-      "pictogram": "sim-insert",
+      "instruction": "Insérer la carte SIM dans le produit. Tout brancher. Mettre l'interrupteur sur ON",
+      "pictogram": "505_gray.png",
       "actionType": "button",
       "actionConfig": {
         "label": "Continuer",
@@ -49,7 +49,7 @@
     {
       "id": "check-init",
       "instruction": "Le produit est-il bien initialisé ? Led D14 verte fixe ?",
-      "pictogram": "power-check",
+      "pictogram": "505_yellow.png",
       "actionType": "choice",
       "actionConfig": {
         "options": [
