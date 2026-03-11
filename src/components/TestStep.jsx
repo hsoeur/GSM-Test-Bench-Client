@@ -124,11 +124,9 @@ function TestStep({ step, data, hasTestBattery = true, onNext, onError }) {
   if (step.id === 'test-complete') {
     if (isGood) {
       resultBadge = <div className="result-badge result-badge-good">✅ ✅ CARTE BONNE ✅ ✅</div>
-      finalInstruction = 'Test terminé. Débrancher batterie. Vous pouvez tester une nouvelle carte.'
       pictogramName = 'check-good'
     } else if (isBad) {
       resultBadge = <div className="result-badge result-badge-bad">❌ ❌ CARTE MAUVAISE ❌ ❌</div>
-      finalInstruction = 'Test terminé. Débrancher batterie. Vous pouvez tester une nouvelle carte.'
       pictogramName = 'check-bad'
     }
   }
