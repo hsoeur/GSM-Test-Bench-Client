@@ -622,6 +622,13 @@ function Product({ productLabel, simSelectId, currentOperationNumber, productUid
           }
 
           setTestData(prev => ({ ...prev, phonieResult: 'ok' }))
+          
+          // Si test-battery n'existe pas dans la séquence, soumettre OK maintenant
+          const hasTestBattery = steps.some(step => step.id === 'test-battery')
+          if (!hasTestBattery) {
+            await submitTraceability('OK')
+          }
+          
           setCurrentStepIndex(prev => prev + 1)
           break
         }
@@ -657,7 +664,10 @@ function Product({ productLabel, simSelectId, currentOperationNumber, productUid
   }
 
   const isBad = testData.isReady === false || testData.phonieResult === 'ko' || testData.batteryResult === 'ko'
-  const isGood = testData.batteryResult === 'ok'
+  const hasTestBattery = steps.some(step => step.id === 'test-battery')
+  const isGood = hasTestBattery 
+    ? testData.batteryResult === 'ok'
+    : testData.phonieResult === 'ok' && testData.isReady === true
 
   return (
     <div className={`panel ${isGood ? 'good' : (isBad ? 'bad' : '')}`}>
