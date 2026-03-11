@@ -250,7 +250,8 @@ function Product({ productLabel, simSelectId, currentOperationNumber, productUid
       console.log('')
       
       // Détection couple Mere/Fille: 2 produits scannés avec productUid différents
-      if (productsToTrace.length === 2 && productsToTrace[0].productUid !== productsToTrace[1].productUid) {
+      // ⚠️ KitTraceability enregistré UNIQUEMENT si la carte est BONNE (status === 'OK')
+      if (status === 'OK' && productsToTrace.length === 2 && productsToTrace[0].productUid !== productsToTrace[1].productUid) {
         console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
         console.log('👩‍👧 DÉTECTION COUPLE MERE/FILLE')
         console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
@@ -320,6 +321,9 @@ function Product({ productLabel, simSelectId, currentOperationNumber, productUid
         }
         
         console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+        console.log('')
+      } else if (productsToTrace.length === 2 && productsToTrace[0].productUid !== productsToTrace[1].productUid) {
+        console.log('⚠️  Couple Mère/Fille détecté mais carte MAUVAISE (KO) - KitTraceability NON enregistré')
         console.log('')
       } else if (productsToTrace.length === 1) {
         console.log('ℹ️  Produit simple détecté (pas de couple Mère/Fille)')
