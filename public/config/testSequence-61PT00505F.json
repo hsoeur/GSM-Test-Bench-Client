@@ -48,7 +48,7 @@
     },
     {
       "id": "check-init",
-      "instruction": "Le produit est-il bien initialisé ? Led D14 verte fixe ?",
+      "instruction": "Le produit est-il bien initialisé ? Les 3 LEDs sont-elles éteintes ? Emission de 4 BIPs ?",
       "pictogram": "505_yellow.png",
       "actionType": "choice",
       "actionConfig": {
@@ -60,7 +60,7 @@
     },
     {
       "id": "test-phonie",
-      "instruction": "Tester la phonie après les 4 BIPs.",
+      "instruction": "Tester la phonie après le BIP.",
       "pictogram": "phone-call",
       "actionType": "choice",
       "actionConfig": {
