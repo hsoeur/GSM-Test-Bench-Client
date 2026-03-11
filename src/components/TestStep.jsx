@@ -4,7 +4,7 @@ import SimSelector from './SimSelector.jsx'
 import Pictogram from './Pictogram.jsx'
 import GsmInfo from './GsmInfo.jsx'
 
-function TestStep({ step, data, onNext, onError }) {
+function TestStep({ step, data, hasTestBattery = true, onNext, onError }) {
   const [value, setValue] = useState('')
   const [isProcessing, setIsProcessing] = useState(false)
 
@@ -112,7 +112,9 @@ function TestStep({ step, data, onNext, onError }) {
 
   // Déterminer le résultat pour l'étape finale
   const isBad = data?.isReady === false || data?.phonieResult === 'ko' || data?.batteryResult === 'ko'
-  const isGood = data?.batteryResult === 'ok'
+  const isGood = hasTestBattery
+    ? data?.batteryResult === 'ok'
+    : data?.phonieResult === 'ok' && data?.isReady === true
   
   // Message et pictogramme pour l'étape finale
   let finalInstruction = step.instruction

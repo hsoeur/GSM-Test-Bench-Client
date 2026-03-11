@@ -730,6 +730,7 @@ function Product({ productLabel, simSelectId, currentOperationNumber, productUid
           <TestStep
             step={currentStep}
             data={testData}
+            hasTestBattery={steps.some(step => step.id === 'test-battery')}
             onNext={handleStepNext}
             onError={(err) => setError(String(err?.message || err))}
           />
