@@ -577,7 +577,6 @@ function Product({ productLabel, simSelectId, currentOperationNumber, productUid
           const phone = selectedSimPhone
           if (!phone) {
             setTestData(prev => ({ ...prev, gsmCallStatus: 'error' }))
-            setError('Aucun numéro associé à la carte SIM sélectionnée.')
             return
           }
 
@@ -586,17 +585,15 @@ function Product({ productLabel, simSelectId, currentOperationNumber, productUid
           // Initier l'appel GSM sans attendre la réponse (fire & forget)
           // pour éviter le timeout selon le produit appelé
           callGsm({ phoneNumber: phone, audioOk: true })
-            .then(({ ok, status }) => {
+            .then(({ ok }) => {
               if (!ok) {
                 setTestData(prev => ({ ...prev, gsmCallStatus: 'error' }))
-                setError(`Échec de l'appel (HTTP ${status || '—'})`)
               } else {
                 setTestData(prev => ({ ...prev, gsmCallStatus: 'connected' }))
               }
             })
             .catch(() => {
               setTestData(prev => ({ ...prev, gsmCallStatus: 'error' }))
-              setError("Impossible d'initier l'appel via le modem GSM.")
             })
 
           // Passer immédiatement à l'étape suivante sans attendre la réponse API
