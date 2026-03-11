@@ -569,9 +569,7 @@ function Product({ productLabel, simSelectId, currentOperationNumber, productUid
             break
           }
 
-          setTestData(prev => ({ ...prev, isReady: true, gsmCallStatus: 'calling' }))
-
-          // Initiate GSM call
+          // Vérifier le numéro de téléphone avant de passer à l'étape suivante
           const phone = selectedSimPhone
           if (!phone) {
             setTestData(prev => ({ ...prev, gsmCallStatus: 'error' }))
@@ -579,21 +577,25 @@ function Product({ productLabel, simSelectId, currentOperationNumber, productUid
             return
           }
 
-          try {
-            const { ok, status } = await callGsm({ phoneNumber: phone, audioOk: true })
-            if (!ok) {
-              setTestData(prev => ({ ...prev, gsmCallStatus: 'error' }))
-              setError(`Échec de l'appel (HTTP ${status || '—'})`)
-              return
-            }
-            // Appel réussi
-            setTestData(prev => ({ ...prev, gsmCallStatus: 'connected' }))
-          } catch {
-            setTestData(prev => ({ ...prev, gsmCallStatus: 'error' }))
-            setError("Impossible d'initier l'appel via le modem GSM.")
-            return
-          }
+          setTestData(prev => ({ ...prev, isReady: true, gsmCallStatus: 'calling' }))
 
+          // Initier l'appel GSM sans attendre la réponse (fire & forget)
+          // pour éviter le timeout selon le produit appelé
+          callGsm({ phoneNumber: phone, audioOk: true })
+            .then(({ ok, status }) => {
+              if (!ok) {
+                setTestData(prev => ({ ...prev, gsmCallStatus: 'error' }))
+                setError(`Échec de l'appel (HTTP ${status || '—'})`)
+              } else {
+                setTestData(prev => ({ ...prev, gsmCallStatus: 'connected' }))
+              }
+            })
+            .catch(() => {
+              setTestData(prev => ({ ...prev, gsmCallStatus: 'error' }))
+              setError("Impossible d'initier l'appel via le modem GSM.")
+            })
+
+          // Passer immédiatement à l'étape suivante sans attendre la réponse API
           setCurrentStepIndex(prev => prev + 1)
           break
         }
