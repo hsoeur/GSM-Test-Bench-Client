@@ -122,9 +122,13 @@ function Product({ productLabel, simSelectId, currentOperationNumber, productUid
       console.log('📄 Fichier sélectionné:', sequenceFileName)
       
       try {
-        const sequenceModule = await import(`../config/${sequenceFileName}`)
+        const response = await fetch(`/config/${sequenceFileName}`)
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+        }
+        const loadedSequence = await response.json()
+        
         if (!cancelled) {
-          const loadedSequence = sequenceModule.default || sequenceModule
           setTestSequence(loadedSequence)
           setTestSequenceFileName(sequenceFileName)
           
