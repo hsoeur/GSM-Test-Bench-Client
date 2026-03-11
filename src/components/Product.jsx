@@ -732,6 +732,7 @@ function Product({ productLabel, simSelectId, currentOperationNumber, productUid
 
         {!error && !retestConfirmation && currentStep && (
           <TestStep
+            key={`${currentStep.id}-${currentStepIndex}`}
             step={currentStep}
             data={testData}
             hasTestBattery={steps.some(step => step.id === 'test-battery')}

@@ -78,6 +78,7 @@
 	color: var(--text);
 	box-shadow: 0 4px 20px rgba(31, 41, 55, 0.06);
 	overflow: hidden;
+	transition: all 400ms cubic-bezier(0.4, 0.0, 0.2, 1);
 }
 
 /* Strong, explicit product states */
@@ -89,9 +90,13 @@
 .panel.good .panel-header {
 	background: rgba(34, 197, 94, 0.12);
 	border-bottom-color: var(--success-border);
+	transition: all 400ms cubic-bezier(0.4, 0.0, 0.2, 1);
 }
 .panel.good .panel-header h2,
-.panel.good .panel-subtitle { color: var(--success-ink); }
+.panel.good .panel-subtitle { 
+	color: var(--success-ink);
+	transition: color 400ms cubic-bezier(0.4, 0.0, 0.2, 1);
+}
 
 .panel.bad {
 	background: var(--error-bg);
@@ -101,9 +106,13 @@
 .panel.bad .panel-header {
 	background: rgba(239, 68, 68, 0.12);
 	border-bottom-color: var(--error-border);
+	transition: all 400ms cubic-bezier(0.4, 0.0, 0.2, 1);
 }
 .panel.bad .panel-header h2,
-.panel.bad .panel-subtitle { color: var(--error-ink); }
+.panel.bad .panel-subtitle { 
+	color: var(--error-ink);
+	transition: color 400ms cubic-bezier(0.4, 0.0, 0.2, 1);
+}
 
 .panel-header {
 	padding: 14px 16px;
@@ -111,6 +120,7 @@
 	display: flex;
 	align-items: baseline;
 	gap: 10px;
+	transition: all 400ms cubic-bezier(0.4, 0.0, 0.2, 1);
 }
 
 .panel-header h2 {
@@ -142,12 +152,14 @@
 	background: var(--input-bg);
 	color: var(--text);
 	padding: 0 12px;
+	transition: all 200ms cubic-bezier(0.4, 0.0, 0.2, 1);
 }
 
 .input:focus {
 	outline: none;
 	border-color: var(--accent-600);
 	box-shadow: 0 0 0 3px var(--ring);
+	transform: translateY(-1px);
 }
 
 .btn {
@@ -158,16 +170,24 @@
 	color: var(--white);
 	font-weight: 700;
 	cursor: pointer;
-	transition: background-color 120ms ease;
+	transition: all 200ms cubic-bezier(0.4, 0.0, 0.2, 1);
 }
 
 .btn:hover {
 	background: var(--accent-700);
+	transform: translateY(-1px);
+	box-shadow: 0 4px 12px rgba(20, 184, 166, 0.25);
+}
+
+.btn:active {
+	transform: translateY(0);
+	transition: all 100ms cubic-bezier(0.4, 0.0, 0.2, 1);
 }
 
 .btn:disabled {
 	opacity: 0.6;
 	cursor: not-allowed;
+	transform: none;
 }
 
 /* Modern translucent CTA buttons */
@@ -177,6 +197,7 @@
 	border-radius: 10px;
 	font-weight: 800;
 	letter-spacing: 0.2px;
+	transition: all 200ms cubic-bezier(0.4, 0.0, 0.2, 1);
 }
 
 .btn-yes.btn-cta {
@@ -189,6 +210,11 @@
 	background: rgba(34, 197, 94, 0.14);
 	border-color: rgba(34, 197, 94, 0.45);
 	box-shadow: 0 8px 18px rgba(34, 197, 94, 0.25);
+	transform: translateY(-2px);
+}
+.btn-yes.btn-cta:active {
+	transform: translateY(0);
+	box-shadow: 0 4px 12px rgba(34, 197, 94, 0.20);
 }
 .btn-yes.btn-cta:focus-visible {
 	outline: none;
@@ -205,6 +231,11 @@
 	background: rgba(239, 68, 68, 0.14);
 	border-color: rgba(239, 68, 68, 0.45);
 	box-shadow: 0 8px 18px rgba(239, 68, 68, 0.25);
+	transform: translateY(-2px);
+}
+.btn-no.btn-cta:active {
+	transform: translateY(0);
+	box-shadow: 0 4px 12px rgba(239, 68, 68, 0.20);
 }
 .btn-no.btn-cta:focus-visible {
 	outline: none;
@@ -222,6 +253,11 @@
 	background: rgba(59, 130, 246, 0.16);
 	border-color: rgba(59, 130, 246, 0.45);
 	box-shadow: 0 8px 18px rgba(59, 130, 246, 0.25);
+	transform: translateY(-2px);
+}
+.btn-next.btn-cta:active {
+	transform: translateY(0);
+	box-shadow: 0 4px 12px rgba(59, 130, 246, 0.20);
 }
 .btn-next.btn-cta:focus-visible {
 	outline: none;
@@ -457,6 +493,19 @@
 	gap: 24px;
 	padding: 32px 16px;
 	text-align: center;
+	animation: stepTransition 350ms cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+/* Transition fluide entre les étapes */
+@keyframes stepTransition {
+	from {
+		opacity: 0;
+		transform: translateX(20px) scale(0.98);
+	}
+	to {
+		opacity: 1;
+		transform: translateX(0) scale(1);
+	}
 }
 
 .result-badge {
@@ -467,7 +516,7 @@
 	border-radius: 20px;
 	margin-bottom: 24px;
 	text-transform: uppercase;
-	animation: badgeZoomIn 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
+	animation: badgeZoomIn 500ms cubic-bezier(0.34, 1.56, 0.64, 1), badgePulse 2s ease-in-out 500ms infinite;
 	box-shadow: 0 12px 36px rgba(0, 0, 0, 0.25);
 }
 
@@ -488,14 +537,25 @@
 @keyframes badgeZoomIn {
 	0% {
 		opacity: 0;
-		transform: scale(0.5) rotate(-5deg);
+		transform: scale(0.4) rotate(-8deg);
 	}
-	70% {
-		transform: scale(1.1) rotate(2deg);
+	60% {
+		transform: scale(1.15) rotate(3deg);
 	}
 	100% {
 		opacity: 1;
 		transform: scale(1) rotate(0deg);
+	}
+}
+
+@keyframes badgePulse {
+	0%, 100% {
+		transform: scale(1);
+		box-shadow: 0 12px 36px rgba(0, 0, 0, 0.25);
+	}
+	50% {
+		transform: scale(1.02);
+		box-shadow: 0 14px 42px rgba(0, 0, 0, 0.30);
 	}
 }
 
@@ -508,13 +568,13 @@
 
 .test-step-pictogram {
 	margin-bottom: 8px;
-	animation: pictogramIn 300ms ease-out;
+	animation: pictogramIn 400ms cubic-bezier(0.34, 1.56, 0.64, 1) 100ms backwards;
 }
 
 @keyframes pictogramIn {
 	from {
 		opacity: 0;
-		transform: scale(0.9) translateY(-12px);
+		transform: scale(0.7) translateY(-16px);
 	}
 	to {
 		opacity: 1;
@@ -528,7 +588,7 @@
 	line-height: 1.4;
 	color: var(--text);
 	max-width: 600px;
-	animation: instructionIn 300ms ease-out 100ms backwards;
+	animation: instructionIn 400ms cubic-bezier(0.4, 0.0, 0.2, 1) 150ms backwards;
 }
 
 @media (min-width: 900px) {
@@ -540,7 +600,7 @@
 @keyframes instructionIn {
 	from {
 		opacity: 0;
-		transform: translateY(8px);
+		transform: translateY(12px);
 	}
 	to {
 		opacity: 1;
@@ -551,17 +611,17 @@
 .test-step-action {
 	width: 100%;
 	max-width: 500px;
-	animation: actionIn 300ms ease-out 200ms backwards;
+	animation: actionIn 450ms cubic-bezier(0.4, 0.0, 0.2, 1) 250ms backwards;
 }
 
 @keyframes actionIn {
 	from {
 		opacity: 0;
-		transform: translateY(12px);
+		transform: translateY(16px) scale(0.97);
 	}
 	to {
 		opacity: 1;
-		transform: translateY(0);
+		transform: translateY(0) scale(1);
 	}
 }
 
@@ -584,17 +644,17 @@
 	border-radius: 12px;
 	padding: 16px;
 	margin-top: 16px;
-	animation: fadeInUp 400ms ease-out;
+	animation: gsmInfoSlideIn 450ms cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-@keyframes fadeInUp {
+@keyframes gsmInfoSlideIn {
 	from {
 		opacity: 0;
-		transform: translateY(12px);
+		transform: translateY(20px) scale(0.95);
 	}
 	to {
 		opacity: 1;
-		transform: translateY(0);
+		transform: translateY(0) scale(1);
 	}
 }
 
@@ -675,4 +735,29 @@
 
 @keyframes spin {
 	to { transform: rotate(360deg); }
+}
+/* Accessibilité : Respecter les préférences "reduce motion" */
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+		scroll-behavior: auto !important;
+	}
+	
+	.test-step {
+		animation: none !important;
+	}
+	
+	.btn:hover,
+	.btn:active,
+	.input:focus {
+		transform: none !important;
+	}
+	
+	.result-badge {
+		animation: none !important;
+	}
 }
