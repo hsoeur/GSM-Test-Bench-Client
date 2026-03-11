@@ -10,7 +10,7 @@ import { request } from './http.js'
  * @param {string} payload.product - Mother product UID (e.g., "61PT00505F")
  * @param {string} payload.horizonComponentCode - Daughter product UID (e.g., "61PT00570D")
  * @param {number|string} payload.serialNumber - Serial number of the mother product
- * @param {string} payload.scanFrame - Scanned label of the mother product
+ * @param {string} payload.scanFrame - Scanned label of the daughter product
  * @param {string} payload.date - ISO 8601 date string
  * @param {string} payload.userUid - Operator user UID
  * @returns {Promise<{ok: boolean, status: number, data?: any}>}

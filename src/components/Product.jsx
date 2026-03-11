@@ -195,11 +195,15 @@ function Product({ productLabel, simSelectId, currentOperationNumber, productUid
       console.log('📦 Nombre de produits:', productsToTrace.length)
       console.log('')
       
-      // Créer une traçabilité pour chaque produit scanné
-      for (let i = 0; i < productsToTrace.length; i++) {
-        const product = productsToTrace[i]
+      // Créer une traçabilité uniquement pour la mère (ou le seul produit scanné)
+      // En cas de couple Mère/Fille, on ne trace PAS la fille
+      const isMotherDaughterPair = productsToTrace.length === 2 && productsToTrace[0].productUid !== productsToTrace[1].productUid
+      const productsToTraceFiltered = isMotherDaughterPair ? [productsToTrace[0]] : productsToTrace
+
+      for (let i = 0; i < productsToTraceFiltered.length; i++) {
+        const product = productsToTraceFiltered[i]
         
-        console.log(`🌐 API CALL - createProductTraceability [Produit ${i + 1}/${productsToTrace.length}]`)
+        console.log(`🌐 API CALL - createProductTraceability [Produit ${i + 1}/${productsToTraceFiltered.length}]${isMotherDaughterPair ? ' (Mère uniquement)' : ''}`)
         console.log('   └─ Endpoint: /api/ProductTraceability')
         
         const payload = {
@@ -283,7 +287,7 @@ function Product({ productLabel, simSelectId, currentOperationNumber, productUid
             product: String(motherProduct.productUid), // MERE
             horizonComponentCode: String(daughterProduct.productUid), // FILLE
             serialNumber: Number(motherProduct.serialLabel || 0), // SERIALNUMBER DE LA MERE
-            scanFrame: String(motherProduct.labelScan || ''), // ETIQUETTE SCANNEE DE LA MERE
+            scanFrame: String(daughterProduct.labelScan || ''), // ETIQUETTE SCANNEE DE LA FILLE
             date: new Date().toISOString(),
             userUid: operator ? String(operator.userUid) : '' // OPERATOR UID
           }
