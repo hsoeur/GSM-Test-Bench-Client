@@ -405,18 +405,6 @@ function Product({ productLabel, simSelectId, currentOperationNumber, productUid
           setTestData(prev => ({ ...prev, testStartTs: Date.now() }))
         }
 
-        // Si ce n'est pas le premier scan, vérifier que c'est le même OF
-        if (scannedProductsRef.current.length > 0) {
-          const firstOf = scannedProductsRef.current[0].ofUid
-          if (ofPart !== firstOf) {
-            console.error('❌ OF différent détecté:', ofPart, '≠', firstOf)
-            setError(`L'OF scanné (${ofPart}) ne correspond pas au premier OF (${firstOf})`)
-            return
-          }
-          console.log('✅ OF validé (identique au premier scan)')
-          console.log('')
-        }
-
         // Récupérer les infos de l'OF pour obtenir le productUid
         console.log('🌐 API CALL #1 - getManufacturingOrderByUid')
         console.log('   └─ Endpoint: /api/ManufacturingOrder/by-manufacturing-order-uid')
