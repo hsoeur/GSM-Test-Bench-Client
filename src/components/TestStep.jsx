@@ -120,7 +120,7 @@ function TestStep({ step, data, hasTestBattery = true, onNext, onError }) {
   let finalInstruction = step.instruction
   let resultBadge = null
   let pictogramName = step.pictogram
-  
+
   if (step.id === 'test-complete') {
     if (isGood) {
       resultBadge = <div className="result-badge result-badge-good">✅ ✅ CARTE BONNE ✅ ✅</div>
@@ -136,7 +136,10 @@ function TestStep({ step, data, hasTestBattery = true, onNext, onError }) {
       {resultBadge}
       
       <div className="test-step-pictogram">
-        <Pictogram name={pictogramName} />
+        {step.image
+          ? <img src={step.image} alt={finalInstruction} style={{ maxWidth: '100%', maxHeight: 375, borderRadius: 8 }} />
+          : <Pictogram name={pictogramName} />
+        }
       </div>
       
       <div className="test-step-instruction">

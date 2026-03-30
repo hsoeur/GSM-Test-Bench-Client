@@ -49,7 +49,7 @@ function App() {
       handleInitGsm()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, []) 
 
   // Auto-hide the success banner after 2 seconds, but keep app enabled
   useEffect(() => {
@@ -186,6 +186,7 @@ function App() {
             key="productA" 
             productLabel="Product A" 
             simSelectId="simSelectA" 
+            assignedSimCardNumber="2853600015432"
             currentOperationNumber={operation?.operationNumber}
             productUid={mo?.data?.productUid}
             manufacturingOrderUid={mo?.uid}
@@ -194,6 +195,7 @@ function App() {
             key="productB" 
             productLabel="Product B" 
             simSelectId="simSelectB" 
+            assignedSimCardNumber="8516469889148"
             currentOperationNumber={operation?.operationNumber}
             productUid={mo?.data?.productUid}
             manufacturingOrderUid={mo?.uid}

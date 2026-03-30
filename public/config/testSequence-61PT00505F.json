@@ -27,18 +27,8 @@
       }
     },
     {
-      "id": "select-sim",
-      "instruction": "Sélectionnez la carte SIM à utiliser pour ce test",
-      "pictogram": "sim-card",
-      "actionType": "select",
-      "actionConfig": {
-        "source": "simCards",
-        "placeholder": "Choisir une carte SIM..."
-      }
-    },
-    {
       "id": "insert-sim",
-      "instruction": "Insérer la carte SIM dans le produit. Tout brancher. Mettre l'interrupteur sur ON",
+      "instruction": "Tout brancher. Mettre l'interrupteur sur ON",
       "pictogram": "505_gray.png",
       "actionType": "button",
       "actionConfig": {

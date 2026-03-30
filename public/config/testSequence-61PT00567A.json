@@ -4,6 +4,7 @@
       "id": "scan-label",
       "instruction": "Scanner l'étiquette de lot.",
       "pictogram": "barcode-scan",
+      "image": "/assets/IMG_4695.png",
       "actionType": "scan",
       "actionConfig": {
         "placeholder": "Scannez ou saisissez le code...",
@@ -13,18 +14,8 @@
       }
     },
     {
-      "id": "select-sim",
-      "instruction": "Sélectionnez la carte SIM à utiliser pour ce test",
-      "pictogram": "sim-card",
-      "actionType": "select",
-      "actionConfig": {
-        "source": "simCards",
-        "placeholder": "Choisir une carte SIM..."
-      }
-    },
-    {
       "id": "insert-sim",
-      "instruction": "Insérer la carte SIM dans le produit, brancher le câble d'alimentation et mettre l'interrupteur sur ON",
+      "instruction": "Tout brancher et mettre l'interrupteur sur ON",
       "pictogram": "sim-insert",
       "actionType": "button",
       "actionConfig": {
@@ -36,6 +27,7 @@
       "id": "check-init",
       "instruction": "Le produit est-il bien initialisé ? Led D10 verte fixe ?",
       "pictogram": "power-check",
+      "image": "/assets/IMG_4692.png",
       "actionType": "choice",
       "actionConfig": {
         "options": [
@@ -61,6 +53,7 @@
       "id": "test-battery",
       "instruction": "Tester basculement batterie. Attendre D9 rouge fixe.",
       "pictogram": "battery-switch",
+      "image": "/assets/IMG_4692_Battery.png",
       "actionType": "choice",
       "actionConfig": {
         "options": [
