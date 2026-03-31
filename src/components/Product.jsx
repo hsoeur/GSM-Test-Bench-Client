@@ -213,7 +213,7 @@ function Product({ productLabel, simSelectId, currentOperationNumber, productUid
     setCurrentStepIndex(0)
     setTestData(prev => ({
       scannedProducts: [],
-      selectedSim: '',
+      selectedSim: prev.selectedSim,
       simOptions: prev.simOptions,
       simList: prev.simList,
       isReady: null,
@@ -624,6 +624,7 @@ function Product({ productLabel, simSelectId, currentOperationNumber, productUid
           const phone = selectedSimPhone
           if (!phone) {
             setTestData(prev => ({ ...prev, gsmCallStatus: 'error' }))
+            setError("Aucune carte SIM sélectionnée ou numéro de téléphone manquant. Vérifiez la configuration SIM.")
             return
           }
 
