@@ -1,0 +1,11 @@
+services:
+  ui-test-gsm:
+    image: ui_testgsm_image:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8015:80"
+    volumes:
+      - ./public/config:/usr/share/nginx/html/config
+    restart: unless-stopped
