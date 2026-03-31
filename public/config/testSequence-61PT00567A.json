@@ -3,7 +3,6 @@
     {
       "id": "scan-label",
       "instruction": "Scanner l'étiquette de lot.",
-      "pictogram": "barcode-scan",
       "image": "/assets/IMG_4695.png",
       "actionType": "scan",
       "actionConfig": {
