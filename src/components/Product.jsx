@@ -163,8 +163,10 @@ function Product({ productLabel, simSelectId, currentOperationNumber, productUid
       console.log('🏷️  Manufacturing Order:', manufacturingOrderUid)
       
       const sequenceFileName = getTestSequenceForProduct(productUid)
+      const sequenceUrl = `${window.location.origin}/config/${sequenceFileName}`
       
       console.log('📄 Fichier sélectionné:', sequenceFileName)
+      console.log('🌐 URL complète:', sequenceUrl)
       
       try {
         const response = await fetch(`/config/${sequenceFileName}`)
