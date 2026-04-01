@@ -11,11 +11,18 @@ import OperatorAuth from './components/OperatorAuth.jsx'
 import { useOperator } from './context/OperatorContext.jsx'
 import ManufacturingOrderScanner from './components/ManufacturingOrderScanner.jsx'
 import OperationSelector from './components/OperationSelector.jsx'
+import SimAssignment from './components/SimAssignment.jsx'
 
 function App() {
   const { operator, login, logout } = useOperator()
   const [mo, setMo] = useState(null) // { uid, data }
   const [operation, setOperation] = useState(null)
+  const [simAssignments, setSimAssignments] = useState(() => {
+    try {
+      const raw = window.sessionStorage.getItem('ui-test-gsm:simAssignments')
+      return raw ? JSON.parse(raw) : null
+    } catch { return null }
+  })
   const [gsmInitState, setGsmInitState] = useState('idle') // idle | pending | success | error
   const [gsmInitError, setGsmInitError] = useState(null)
   const [showGsmInitSuccess, setShowGsmInitSuccess] = useState(false)
@@ -94,6 +101,20 @@ function App() {
     ] },
   ]), [])
 
+  const handleSimAssignmentConfirm = (assignments) => {
+    setSimAssignments(assignments)
+    try {
+      window.sessionStorage.setItem('ui-test-gsm:simAssignments', JSON.stringify(assignments))
+    } catch {}
+  }
+
+  const handleChangeSimAssignments = () => {
+    setSimAssignments(null)
+    try {
+      window.sessionStorage.removeItem('ui-test-gsm:simAssignments')
+    } catch {}
+  }
+
   const handleAuthenticated = (op) => {
     setMo(null)
     setOperation(null)
@@ -130,6 +151,9 @@ function App() {
                 {operation && (
                   <button className="btn-ghost" type="button" onClick={() => setOperation(null)}>Changer Opération</button>
                 )}
+                {simAssignments && (
+                  <button className="btn-ghost" type="button" onClick={handleChangeSimAssignments}>Changer SIM</button>
+                )}
               </>
             )}
             {operator && (
@@ -149,6 +173,10 @@ function App() {
       ) : !operation ? (
         <div className="center-screen">
           <OperationSelector productUid={mo?.data?.productUid} onSelected={setOperation} />
+        </div>
+      ) : !simAssignments ? (
+        <div className="center-screen">
+          <SimAssignment onConfirm={handleSimAssignmentConfirm} />
         </div>
       ) : (
         <>
@@ -186,7 +214,7 @@ function App() {
             key="productA" 
             productLabel="Product A" 
             simSelectId="simSelectA" 
-            assignedSimCardNumber="2853600015432"
+            assignedSimCardNumber={simAssignments?.simA}
             currentOperationNumber={operation?.operationNumber}
             productUid={mo?.data?.productUid}
             manufacturingOrderUid={mo?.uid}
@@ -195,7 +223,7 @@ function App() {
             key="productB" 
             productLabel="Product B" 
             simSelectId="simSelectB" 
-            assignedSimCardNumber="8516469889148"
+            assignedSimCardNumber={simAssignments?.simB}
             currentOperationNumber={operation?.operationNumber}
             productUid={mo?.data?.productUid}
             manufacturingOrderUid={mo?.uid}
