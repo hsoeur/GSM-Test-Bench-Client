@@ -9,6 +9,7 @@ export const PRODUCT_TEST_SEQUENCES = {
   // Product-specific test sequences
   '61PT00567A': 'testSequence-61PT00567A.json',
   '61PT00505F': 'testSequence-61PT00505F.json',
+  '71PT00634A': 'testSequence-71PT00634A.json',
   
   
   // Add your product mappings here

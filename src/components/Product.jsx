@@ -8,6 +8,7 @@ import { createKitTraceability } from '../services/kitTraceabilityService.js'
 import { useOperator } from '../context/OperatorContext.jsx'
 import { getSimCards, toSimOption } from '../services/simCardService.js'
 import { getTestSequenceForProduct } from '../config/productTestSequenceMapping.js'
+import { printBySerialNumber } from '../services/printService.js'
 
 function Product({ productLabel, simSelectId, currentOperationNumber, productUid, manufacturingOrderUid, assignedSimCardNumber }) {
   const { operator } = useOperator()
@@ -687,6 +688,34 @@ function Product({ productLabel, simSelectId, currentOperationNumber, productUid
 
           setTestData(prev => ({ ...prev, batteryResult: 'ok' }))
           await submitTraceability('OK')
+
+          // Impression étiquettes spécifique au produit 71PT00634A
+          if (productUid === '71PT00634A') {
+            const mainProduct = scannedProductsRef.current[0]
+            if (mainProduct) {
+              const printParams = {
+                manufacturingOrderUid: mainProduct.ofUid,
+                productUid: '51PT00634A',
+                serialNumber: mainProduct.serialLabel,
+              }
+
+              console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+              console.log('🖨️  IMPRESSION ÉTIQUETTES — 71PT00634A')
+              console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+
+              console.log('🖨️  [1/2] Impression étiquette Désignation (Gateway Montage Mac TKE)')
+              const print1 = await printBySerialNumber({ ...printParams, uidUsage: 'Gateway Montage Mac TKE' })
+              console.log('   └─ Status HTTP:', print1.status, '| OK:', print1.ok)
+
+              console.log('🖨️  [2/2] Impression étiquette Portail ASM (Gateway Montage Portail ASM TKE)')
+              const print2 = await printBySerialNumber({ ...printParams, uidUsage: 'Gateway Montage Portail ASM TKE' })
+              console.log('   └─ Status HTTP:', print2.status, '| OK:', print2.ok)
+
+              console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+              console.log('')
+            }
+          }
+
           setCurrentStepIndex(prev => prev + 1)
           break
         }

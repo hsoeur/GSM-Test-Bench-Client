@@ -15,6 +15,7 @@ export const API_BASES = {
   TEST_GSM: withTrailingSlash('http://localhost:5001'),
   DATA: withTrailingSlash('http://192.168.1.104:10000'),
   MO: withTrailingSlash('http://192.168.1.104:10000'),
+  PRINT: withTrailingSlash('http://localhost:5298'),
 }
 
 export const ENDPOINTS = {
@@ -69,6 +70,14 @@ export const ENDPOINTS = {
   // Kit Traceability (Mother/Daughter product association)
   // POST api/KitTraceability/create
   kitTraceabilityCreate: join(API_BASES.MO, 'api/KitTraceability/create'),
+
+  // Print labels
+  // GET api/Print/PrintBySerialNumber
+  printBySerialNumber: ({ manufacturingOrderUid, productUid, uidUsage, serialNumber } = {}) =>
+    join(
+      API_BASES.PRINT,
+      `api/Print/PrintBySerialNumber?manufacturingOrderUid=${encodeURIComponent(manufacturingOrderUid ?? '')}&productUid=${encodeURIComponent(productUid ?? '')}&uidUsage=${encodeURIComponent(uidUsage ?? '')}&serialNumber=${encodeURIComponent(serialNumber ?? '')}`,
+    ),
 }
 
 export default { API_BASES, ENDPOINTS }

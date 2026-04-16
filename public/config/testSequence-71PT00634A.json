@@ -1,0 +1,75 @@
+{
+  "testSequence": [
+    {
+      "id": "scan-label",
+      "instruction": "Scanner l'étiquette de lot.",
+      "image": "/assets/IMG_4695.png",
+      "actionType": "scan",
+      "actionConfig": {
+        "placeholder": "Scannez ou saisissez le code...",
+        "validation": "label",
+        "autoFocus": true,
+        "previousOperationUid": 55
+      }
+    },
+    {
+      "id": "insert-sim",
+      "instruction": "Tout brancher et mettre l'interrupteur sur ON",
+      "pictogram": "sim-insert",
+      "actionType": "button",
+      "actionConfig": {
+        "label": "Continuer",
+        "variant": "primary"
+      }
+    },
+    {
+      "id": "check-init",
+      "instruction": "Le produit est-il bien initialisé ? Led D10 verte fixe ?",
+      "pictogram": "power-check",
+      "image": "/assets/IMG_4692.png",
+      "actionType": "choice",
+      "actionConfig": {
+        "options": [
+          { "value": "ok", "label": "OUI", "variant": "success" },
+          { "value": "ko", "label": "NON", "variant": "error" }
+        ]
+      }
+    },
+    {
+      "id": "test-phonie",
+      "instruction": "Tester la phonie après les 4 BIPs.",
+      "pictogram": "phone-call",
+      "actionType": "choice",
+      "actionConfig": {
+        "triggerCall": true,
+        "options": [
+          { "value": "ok", "label": "Phonie OK", "variant": "success" },
+          { "value": "ko", "label": "Phonie KO", "variant": "error" }
+        ]
+      }
+    },
+    {
+      "id": "test-battery",
+      "instruction": "Tester basculement batterie. Attendre D9 rouge fixe.",
+      "pictogram": "battery-switch",
+      "image": "/assets/IMG_4692_Battery.png",
+      "actionType": "choice",
+      "actionConfig": {
+        "options": [
+          { "value": "ok", "label": "Bascule OK", "variant": "success" },
+          { "value": "ko", "label": "Bascule KO", "variant": "error" }
+        ]
+      }
+    },
+    {
+      "id": "test-complete",
+      "instruction": "Test terminé. Débrancher batterie. Vous pouvez tester une nouvelle carte.",
+      "pictogram": "check-circle",
+      "actionType": "button",
+      "actionConfig": {
+        "label": "Tester une autre carte",
+        "variant": "primary"
+      }
+    }
+  ]
+}
