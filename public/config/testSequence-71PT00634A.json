@@ -25,9 +25,9 @@
     },
     {
       "id": "check-init",
-      "instruction": "Le produit est-il bien initialisé ? Led D10 verte fixe ?",
+      "instruction": "Le produit est-il bien initialisé ? Led D10 clignote orange ?",
       "pictogram": "power-check",
-      "image": "/assets/IMG_4692.png",
+      "image": "/assets/IMG_GW_init.png",
       "actionType": "choice",
       "actionConfig": {
         "options": [
@@ -38,7 +38,7 @@
     },
     {
       "id": "test-phonie",
-      "instruction": "Tester la phonie après les 4 BIPs.",
+      "instruction": "Tester la phonie après le BIP. Réaction produit.",
       "pictogram": "phone-call",
       "actionType": "choice",
       "actionConfig": {
@@ -51,7 +51,7 @@
     },
     {
       "id": "test-battery",
-      "instruction": "Tester basculement batterie. Attendre D9 rouge fixe.",
+      "instruction": "Tester basculement batterie. Le produit ne doit pas s'éteindre",
       "pictogram": "battery-switch",
       "image": "/assets/IMG_4692_Battery.png",
       "actionType": "choice",
