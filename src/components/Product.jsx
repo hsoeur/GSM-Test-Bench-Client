@@ -485,8 +485,8 @@ function Product({ productLabel, simSelectId, currentOperationNumber, productUid
         const currentStepData = loadedSteps.find(step => step.id === stepId)
         const previousOperationUid = currentStepData?.actionConfig?.previousOperationUid || null
         
-        // Use productUid from step config if specified, otherwise use the one from Manufacturing Order
-        const productUidForCheck = currentStepData?.actionConfig?.productUid || productUid
+        // Use checkProductUid from step config for N-1 verification, otherwise fall back to productUid config or MO productUid
+        const productUidForCheck = currentStepData?.actionConfig?.checkProductUid || currentStepData?.actionConfig?.productUid || productUid
         
         if (previousOperationUid) {
           console.log('🌐 API CALL #2 - getLatestProductTraceability (vérification N-1)')
@@ -536,16 +536,17 @@ function Product({ productLabel, simSelectId, currentOperationNumber, productUid
           console.log('')
         }
 
-        // Check if product already tested for current operation
+        // Check if product already tested for current operation (use traceability productUid)
+        const productUidForTraceability = currentStepData?.actionConfig?.productUid || productUid
         console.log('🌐 API CALL #3 - getLatestProductTraceability')
         console.log('   └─ Endpoint: /api/ProductTraceability/latest')
         console.log('   └─ Paramètres:')
-        console.log('      • productUid:', productUidForCheck)
+        console.log('      • productUid:', productUidForTraceability)
         console.log('      • serialNumber:', serialPart)
         console.log('      • operationNumber:', currentOperationNumber)
 
         const { ok: ok3, status: st3, data: latestTrace } = await getLatestProductTraceability(
-          productUidForCheck,
+          productUidForTraceability,
           serialPart,
           currentOperationNumber,
         )
@@ -561,19 +562,19 @@ function Product({ productLabel, simSelectId, currentOperationNumber, productUid
           console.warn('⚠️  Produit déjà testé BON à cette opération')
           console.log('   └─ Demande de confirmation de retest...')
           console.log('')
-          setRetestConfirmation({ productUid: productUidForCheck, serialLabel: serialPart, ofUid: ofPart })
+          setRetestConfirmation({ productUid: productUidForTraceability, serialLabel: serialPart, ofUid: ofPart })
           return
         }
 
         console.log('✅ Produit non encore testé (ou KO) à cette opération')
         console.log('')
 
-        // Créer l'objet produit
+        // Créer l'objet produit - utiliser productUid (config ou OF) pour la traçabilité, pas le checkProductUid
         const scannedProduct = {
           labelScan: raw,
           serialLabel: serialPart,
           ofUid: ofPart,
-          productUid: productUidForCheck
+          productUid: productUidForTraceability
         }
 
         // Ajouter le produit scanné à la ref (synchrone)
