@@ -15,7 +15,7 @@ export const API_BASES = {
   TEST_GSM: withTrailingSlash('http://localhost:5001'),
   DATA: withTrailingSlash('http://192.168.1.104:10000'),
   MO: withTrailingSlash('http://192.168.1.104:10000'),
-  PRINT: withTrailingSlash('http://http://192.168.1.104:7001'),
+  PRINT: withTrailingSlash('http://192.168.1.104:7001'),
 }
 
 export const ENDPOINTS = {
