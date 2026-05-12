@@ -20,7 +20,7 @@ export const API_BASES = {
 
 export const ENDPOINTS = {
   gsmHealth: join(API_BASES.TEST_GSM, 'api/Gsm/health'),
-  gsmInit: join(API_BASES.TEST_GSM, 'api/Gsm/init'),
+  gsmInit: join(API_BASES.TEST_GSM, 'api/Gsm/init-4g'),
   gsmCall: join(API_BASES.TEST_GSM, 'api/Gsm/call'),
   gsmHangup: join(API_BASES.TEST_GSM, 'api/Gsm/hangup'),
   dataApiHealth: join(API_BASES.DATA, 'api/Health/Live'),

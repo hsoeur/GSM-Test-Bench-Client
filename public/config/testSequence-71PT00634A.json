@@ -33,7 +33,7 @@
         "options": [
           { "value": "ok", "label": "OUI", "variant": "success" },
           { "value": "ko", "label": "NON", "variant": "error" }
-        ]
+        ] 
       }
     },
     {
