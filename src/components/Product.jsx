@@ -28,6 +28,8 @@ function Product({ productLabel, simSelectId, currentOperationNumber, productUid
     isReady: null,
     phonieResult: null,
     batteryResult: null,
+    switchOffResult: null,
+    checkIntercoResult: null,
     testStartTs: null,
     gsmCallStatus: 'idle', // idle | calling | connected | error
   })
@@ -226,6 +228,8 @@ function Product({ productLabel, simSelectId, currentOperationNumber, productUid
       isReady: null,
       phonieResult: null,
       batteryResult: null,
+      switchOffResult: null,
+      checkIntercoResult: null,
       testStartTs: null,
       gsmCallStatus: 'idle',
     }))
@@ -482,8 +486,10 @@ function Product({ productLabel, simSelectId, currentOperationNumber, productUid
           return
         }
 
-        const productUid = String(data.productUid || '')
-        console.log('✅ ProductUid récupéré:', productUid)
+        const scannedProductUid = String(data.productUid || '')
+        console.log('✅ ProductUid récupéré (étiquette):', scannedProductUid)
+        console.log('🏭 ProductUid OF initial (traça):', productUid)
+        console.log('📋 ManufacturingOrderUid OF initial (traça):', manufacturingOrderUid)
         console.log('')
 
         // Check previous operation status using operationUid from current step config
@@ -491,8 +497,8 @@ function Product({ productLabel, simSelectId, currentOperationNumber, productUid
         const currentStepData = loadedSteps.find(step => step.id === stepId)
         const previousOperationUid = currentStepData?.actionConfig?.previousOperationUid || null
         
-        // Use checkProductUid from step config for N-1 verification, otherwise fall back to productUid config or MO productUid
-        const productUidForCheck = currentStepData?.actionConfig?.checkProductUid || currentStepData?.actionConfig?.productUid || productUid
+        // Use checkProductUid from step config for N-1 verification, otherwise fall back to scanned productUid
+        const productUidForCheck = currentStepData?.actionConfig?.checkProductUid || currentStepData?.actionConfig?.productUid || scannedProductUid
         
         if (previousOperationUid) {
           console.log('🌐 API CALL #2 - getLatestProductTraceability (vérification N-1)')
@@ -542,12 +548,16 @@ function Product({ productLabel, simSelectId, currentOperationNumber, productUid
           console.log('')
         }
 
-        // Check if product already tested for current operation (use traceability productUid)
+        // productUid pour la traçabilité :
+        // - Si actionConfig.productUid existe (cas mère/fille 61PT00505F), on l'utilise
+        // - Sinon, on utilise le productUid de l'OF sélectionné au démarrage (prop)
+        // NOTE : checkProductUid n'est utilisé QUE pour la vérification N-1, jamais pour la traça
         const productUidForTraceability = currentStepData?.actionConfig?.productUid || productUid
+
         console.log('🌐 API CALL #3 - getLatestProductTraceability')
         console.log('   └─ Endpoint: /api/ProductTraceability/latest')
         console.log('   └─ Paramètres:')
-        console.log('      • productUid:', productUidForTraceability)
+        console.log('      • productUid:', productUidForTraceability, currentStepData?.actionConfig?.productUid ? '(config étape)' : '(OF initial)')
         console.log('      • serialNumber:', serialPart)
         console.log('      • operationNumber:', currentOperationNumber)
 
@@ -568,18 +578,19 @@ function Product({ productLabel, simSelectId, currentOperationNumber, productUid
           console.warn('⚠️  Produit déjà testé BON à cette opération')
           console.log('   └─ Demande de confirmation de retest...')
           console.log('')
-          setRetestConfirmation({ productUid: productUidForTraceability, serialLabel: serialPart, ofUid: ofPart })
+          setRetestConfirmation({ productUid: productUidForTraceability, serialLabel: serialPart, ofUid: manufacturingOrderUid })
           return
         }
 
         console.log('✅ Produit non encore testé (ou KO) à cette opération')
         console.log('')
 
-        // Créer l'objet produit - utiliser productUid (config ou OF) pour la traçabilité, pas le checkProductUid
+        // productUid : actionConfig.productUid si présent (mère/fille), sinon prop OF initial
+        // ofUid : toujours le manufacturingOrderUid sélectionné au démarrage
         const scannedProduct = {
           labelScan: raw,
           serialLabel: serialPart,
-          ofUid: ofPart,
+          ofUid: manufacturingOrderUid,
           productUid: productUidForTraceability
         }
 
@@ -674,9 +685,10 @@ function Product({ productLabel, simSelectId, currentOperationNumber, productUid
 
           setTestData(prev => ({ ...prev, phonieResult: 'ok' }))
           
-          // Si test-battery n'existe pas dans la séquence, soumettre OK maintenant
+          // Si test-battery, switch-off ou check-interco existent, ne pas soumettre maintenant
           const hasTestBattery = steps.some(step => step.id === 'test-battery')
-          if (!hasTestBattery) {
+          const hasPostPhonieChoices = steps.some(step => step.id === 'switch-off' || step.id === 'check-interco')
+          if (!hasTestBattery && !hasPostPhonieChoices) {
             await submitTraceability('OK')
           }
           
@@ -727,6 +739,35 @@ function Product({ productLabel, simSelectId, currentOperationNumber, productUid
           break
         }
 
+        case 'switch-off': {
+          if (value === 'ko') {
+            setTestData(prev => ({ ...prev, switchOffResult: 'ko' }))
+            await submitTraceability('KO')
+            setCurrentStepIndex(steps.length - 1)
+            break
+          }
+          setTestData(prev => ({ ...prev, switchOffResult: 'ok' }))
+          setCurrentStepIndex(prev => prev + 1)
+          break
+        }
+
+        case 'check-interco': {
+          if (value === 'ko') {
+            setTestData(prev => ({ ...prev, checkIntercoResult: 'ko' }))
+            await submitTraceability('KO')
+            setCurrentStepIndex(steps.length - 1)
+            break
+          }
+          setTestData(prev => ({ ...prev, checkIntercoResult: 'ok' }))
+          // Les deux tests visuels sont OK → soumettre OK si pas de test-battery après
+          const hasTestBatteryAfter = steps.some(step => step.id === 'test-battery')
+          if (!hasTestBatteryAfter) {
+            await submitTraceability('OK')
+          }
+          setCurrentStepIndex(prev => prev + 1)
+          break
+        }
+
         case 'test-complete': {
           resetAll()
           break
@@ -742,11 +783,14 @@ function Product({ productLabel, simSelectId, currentOperationNumber, productUid
     }
   }
 
-  const isBad = testData.isReady === false || testData.phonieResult === 'ko' || testData.batteryResult === 'ko'
+  const isBad = testData.isReady === false || testData.phonieResult === 'ko' || testData.batteryResult === 'ko' || testData.switchOffResult === 'ko' || testData.checkIntercoResult === 'ko'
   const hasTestBattery = steps.some(step => step.id === 'test-battery')
+  const hasPostPhonieChoices = steps.some(step => step.id === 'switch-off' || step.id === 'check-interco')
   const isGood = hasTestBattery 
     ? testData.batteryResult === 'ok'
-    : testData.phonieResult === 'ok' && testData.isReady === true
+    : hasPostPhonieChoices
+      ? testData.phonieResult === 'ok' && testData.isReady === true && testData.switchOffResult === 'ok' && testData.checkIntercoResult === 'ok'
+      : testData.phonieResult === 'ok' && testData.isReady === true
 
   return (
     <div className={`panel ${isGood ? 'good' : (isBad ? 'bad' : '')}`}>

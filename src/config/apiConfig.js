@@ -13,8 +13,8 @@ const join = (base, path) => {
 export const API_BASES = {
   // Hardcoded bases (no env). Update here if backends move.
   TEST_GSM: withTrailingSlash('http://localhost:5001'),
-  DATA: withTrailingSlash('http://192.168.1.104:10000'),
-  MO: withTrailingSlash('http://192.168.1.104:10000'),
+  DATA: withTrailingSlash('http://localhost:5400'),
+  MO: withTrailingSlash('http://localhost:5400'),
   PRINT: withTrailingSlash('http://192.168.1.104:7001'),
 }
 

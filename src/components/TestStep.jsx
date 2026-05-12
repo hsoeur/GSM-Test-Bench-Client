@@ -111,10 +111,12 @@ function TestStep({ step, data, hasTestBattery = true, onNext, onError }) {
   const phoneNumber = selectedSim?.phoneNumber || ''
 
   // Déterminer le résultat pour l'étape finale
-  const isBad = data?.isReady === false || data?.phonieResult === 'ko' || data?.batteryResult === 'ko'
+  const isBad = data?.isReady === false || data?.phonieResult === 'ko' || data?.batteryResult === 'ko' || data?.switchOffResult === 'ko' || data?.checkIntercoResult === 'ko'
   const isGood = hasTestBattery
     ? data?.batteryResult === 'ok'
-    : data?.phonieResult === 'ok' && data?.isReady === true
+    : (data?.switchOffResult || data?.checkIntercoResult)
+      ? data?.phonieResult === 'ok' && data?.isReady === true && data?.switchOffResult === 'ok' && data?.checkIntercoResult === 'ok'
+      : data?.phonieResult === 'ok' && data?.isReady === true
   
   // Message et pictogramme pour l'étape finale
   let finalInstruction = step.instruction
