@@ -25,9 +25,9 @@
     },
     {
       "id": "check-init",
-      "instruction": "Le produit est-il bien initialisé ? Led D10 clignote orange ?",
+      "instruction": "Le produit est-il bien initialisé ? Led D6 clignote orange ?",
       "pictogram": "power-check",
-      "image": "/assets/IMG_GW_init.png",
+      "image": "/assets/LED_D6.jpg",
       "actionType": "choice",
       "actionConfig": {
         "options": [
@@ -60,6 +60,28 @@
           { "value": "ok", "label": "Bascule OK", "variant": "success" },
           { "value": "ko", "label": "Bascule KO", "variant": "error" }
         ]
+      }
+    },
+    {
+      "id": "switch-off",
+      "instruction": "Mettre interrupteur sur OFF et vérifier extinction D1.",
+      "pictogram": "power-check",
+      "image": "/assets/LED_D6.jpg",
+      "actionType": "button",
+      "actionConfig": {
+        "label": "OK",
+        "variant": "primary"
+      }
+    },
+    {
+      "id": "check-interco",
+      "instruction": "Basculer Inter C010 vers led D4 et vérifier extinction D4.",
+      "pictogram": "power-check",
+      "image": "/assets/INTERCO.jpg",
+      "actionType": "button",
+      "actionConfig": {
+        "label": "OK",
+        "variant": "primary"
       }
     },
     {
