@@ -170,7 +170,8 @@ function Product({ productLabel, simSelectId, currentOperationNumber, productUid
       console.log('🌐 URL complète:', sequenceUrl)
       
       try {
-        const response = await fetch(`/config/${sequenceFileName}`)
+        const cacheBuster = `?t=${Date.now()}`
+        const response = await fetch(`/config/${sequenceFileName}${cacheBuster}`)
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}: ${response.statusText}`)
         }
@@ -182,7 +183,12 @@ function Product({ productLabel, simSelectId, currentOperationNumber, productUid
           
           console.log('✅ Séquence chargée avec succès!')
           console.log('📊 Nombre d\'étapes:', loadedSequence?.testSequence?.length || 0)
-          console.log('📝 Contenu de la séquence:', JSON.stringify(loadedSequence, null, 2))
+          console.log('📋 Liste des étapes:')
+          loadedSequence?.testSequence?.forEach((step, i) => {
+            console.log(`   ${i + 1}. [${step.id}] ${step.instruction}`)
+            if (step.image) console.log(`      📷 Image: ${step.image}`)
+          })
+          console.log('📝 Contenu complet:', JSON.stringify(loadedSequence, null, 2))
           console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
           console.log('')
         }
