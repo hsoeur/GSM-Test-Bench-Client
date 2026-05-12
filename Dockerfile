@@ -18,6 +18,9 @@ RUN npm run build
 # Étape 2 : Servir l'application avec Nginx
 FROM nginx:alpine AS production
 
+# Custom Nginx config to disable caching on /config/ files
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
 # Copier les fichiers build de l'application React (générés par Vite)
 COPY --from=builder /app/dist /usr/share/nginx/html
 
