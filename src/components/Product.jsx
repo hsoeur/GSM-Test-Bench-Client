@@ -722,12 +722,12 @@ function Product({ productLabel, simSelectId, currentOperationNumber, productUid
               console.log('🖨️  IMPRESSION ÉTIQUETTES — 71PT00634A')
               console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
 
-              console.log('🖨️  [1/2] Impression étiquette Désignation (Gateway Montage Mac TKE)')
-              const print1 = await printBySerialNumber({ ...printParams, uidUsage: 'Gateway Montage Mac TKE' })
+              console.log('🖨️  [1/2] Impression étiquette Portail ASM (Gateway Montage Portail ASM TKE)')
+              const print1 = await printBySerialNumber({ ...printParams, uidUsage: 'Gateway Montage Portail ASM TKE' })
               console.log('   └─ Status HTTP:', print1.status, '| OK:', print1.ok)
 
-              console.log('🖨️  [2/2] Impression étiquette Portail ASM (Gateway Montage Portail ASM TKE)')
-              const print2 = await printBySerialNumber({ ...printParams, uidUsage: 'Gateway Montage Portail ASM TKE' })
+              console.log('🖨️  [2/2] Impression étiquette Désignation (Gateway Montage Mac TKE)')
+              const print2 = await printBySerialNumber({ ...printParams, uidUsage: 'Gateway Montage Mac TKE' })
               console.log('   └─ Status HTTP:', print2.status, '| OK:', print2.ok)
 
               console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
@@ -778,12 +778,12 @@ function Product({ productLabel, simSelectId, currentOperationNumber, productUid
                 console.log('🖨️  IMPRESSION ÉTIQUETTES — 71PT00634A')
                 console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
 
-                console.log('🖨️  [1/2] Impression étiquette Désignation (Gateway Montage Mac TKE)')
-                const print1 = await printBySerialNumber({ ...printParams, uidUsage: 'Gateway Montage Mac TKE' })
+                console.log('🖨️  [1/2] Impression étiquette Portail ASM (Gateway Montage Portail ASM TKE)')
+                const print1 = await printBySerialNumber({ ...printParams, uidUsage: 'Gateway Montage Portail ASM TKE' })
                 console.log('   └─ Status HTTP:', print1.status, '| OK:', print1.ok)
 
-                console.log('🖨️  [2/2] Impression étiquette Portail ASM (Gateway Montage Portail ASM TKE)')
-                const print2 = await printBySerialNumber({ ...printParams, uidUsage: 'Gateway Montage Portail ASM TKE' })
+                console.log('🖨️  [2/2] Impression étiquette Désignation (Gateway Montage Mac TKE)')
+                const print2 = await printBySerialNumber({ ...printParams, uidUsage: 'Gateway Montage Mac TKE' })
                 console.log('   └─ Status HTTP:', print2.status, '| OK:', print2.ok)
 
                 console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
