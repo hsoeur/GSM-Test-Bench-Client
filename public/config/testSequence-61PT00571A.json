@@ -24,7 +24,7 @@
     },
     {
       "id": "check-init",
-      "instruction": "Le produit est-il bien initialisé ? Led D8 verte fixe ?",
+      "instruction": "Le produit est-il bien initialisé ? Led D8 verte fixe et Led bleue clignotte? Ne pas mettre oui si led bleu fixe !",
       "pictogram": "power-check",
       "image": "/assets/571Init.jpg",
       "actionType": "choice",
