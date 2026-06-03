@@ -273,8 +273,8 @@ function Product({ productLabel, simSelectId, currentOperationNumber, productUid
           userUid: operator ? String(operator.userUid) : '',
           cycleTime: (() => {
             if (!testStartTsRef.current) return ''
-            const secs = (Date.now() - testStartTsRef.current) / 1000
-            return String(Number(secs.toFixed(1)))
+            const ms = Date.now() - testStartTsRef.current
+            return String(ms)
           })(),
           operationNumber: currentOperationNumber != null ? String(currentOperationNumber) : '',
           machineUid: String(machineUid),
@@ -286,7 +286,7 @@ function Product({ productLabel, simSelectId, currentOperationNumber, productUid
         console.log('      • productStatusUid:', payload.productStatusUid)
         console.log('      • manufacturingOrderUid:', payload.manufacturingOrderUid)
         console.log('      • userUid:', payload.userUid)
-        console.log('      • cycleTime:', payload.cycleTime, 's')
+        console.log('      • cycleTime:', payload.cycleTime, 'ms')
         console.log('      • operationNumber:', payload.operationNumber)
         console.log('      • machineUid:', payload.machineUid)
         console.log('      • creationDate:', payload.creationDate)
