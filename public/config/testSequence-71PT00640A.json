@@ -9,7 +9,7 @@
         "placeholder": "Scannez ou saisissez le code...",
         "validation": "label",
         "autoFocus": true,
-        "previousOperationUid": 55,
+        "previousOperationUid": 50,
         "checkProductUid": "51PT00640A"
       }
     },
