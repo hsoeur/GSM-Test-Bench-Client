@@ -708,18 +708,30 @@ function Product({ productLabel, simSelectId, currentOperationNumber, productUid
           setTestData(prev => ({ ...prev, batteryResult: 'ok' }))
           await submitTraceability('OK')
 
-          // Impression étiquettes spécifique aux produits 71PT00634A et 71PT00641
-          if (productUid === '71PT00634A' || productUid === '71PT00641') {
+          // Impression étiquettes spécifique aux produits 71PT00634A, 71PT00640A, 71PT00641 et 71PT00643A
+          if (['71PT00634A', '71PT00640A', '71PT00641', '71PT00643A'].includes(productUid)) {
             const mainProduct = scannedProductsRef.current[0]
             if (mainProduct) {
-              const printProductUid = productUid === '71PT00634A' ? '51PT00634A' : '51PT00641'
+              const printProductUidMap = {
+                '71PT00634A': '51PT00634A',
+                '71PT00640A': '51PT00640A',
+                '71PT00641': '51PT00641',
+                '71PT00643A': '51PT00643A',
+              }
+              const printProductUid = printProductUidMap[productUid]
               const printParams = {
                 manufacturingOrderUid: mainProduct.ofUid,
                 productUid: printProductUid,
                 serialNumber: mainProduct.serialLabel,
               }
 
-              const usageSuffix = productUid === '71PT00641' ? 'AMP' : 'TKE'
+              const usageSuffixMap = {
+                '71PT00634A': 'TKE',
+                '71PT00640A': 'TKE V2',
+                '71PT00641': 'AMP',
+                '71PT00643A': 'AMP V2',
+              }
+              const usageSuffix = usageSuffixMap[productUid]
 
               console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
               console.log(`🖨️  IMPRESSION ÉTIQUETTES — ${productUid}`)
@@ -767,12 +779,24 @@ function Product({ productLabel, simSelectId, currentOperationNumber, productUid
           if (!hasTestBatteryAfter) {
             await submitTraceability('OK')
 
-            // Impression étiquettes spécifique aux produits 71PT00634A et 71PT00641
-            if (productUid === '71PT00634A' || productUid === '71PT00641') {
+            // Impression étiquettes spécifique aux produits 71PT00634A, 71PT00640A, 71PT00641 et 71PT00643A
+            if (['71PT00634A', '71PT00640A', '71PT00641', '71PT00643A'].includes(productUid)) {
               const mainProduct = scannedProductsRef.current[0]
               if (mainProduct) {
-                const printProductUid = productUid === '71PT00634A' ? '51PT00634A' : '51PT00641'
-                const usageSuffix = productUid === '71PT00641' ? 'AMP' : 'TKE'
+                const printProductUidMap = {
+                  '71PT00634A': '51PT00634A',
+                  '71PT00640A': '51PT00640A',
+                  '71PT00641': '51PT00641',
+                  '71PT00643A': '51PT00643A',
+                }
+                const printProductUid = printProductUidMap[productUid]
+                const usageSuffixMap = {
+                  '71PT00634A': 'TKE',
+                  '71PT00640A': 'TKE V2',
+                  '71PT00641': 'AMP',
+                  '71PT00643A': 'AMP V2',
+                }
+                const usageSuffix = usageSuffixMap[productUid]
                 const printParams = {
                   manufacturingOrderUid: mainProduct.ofUid,
                   productUid: printProductUid,
