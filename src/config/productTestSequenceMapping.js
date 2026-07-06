@@ -37,6 +37,9 @@ export function getTestSequenceForProduct(productUid) {
   return 'testSequence-default.json'
 }
 
+/**
+ * 
+ */
 export default {
   PRODUCT_TEST_SEQUENCES,
   getTestSequenceForProduct,

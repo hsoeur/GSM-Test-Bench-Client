@@ -17,17 +17,23 @@ export default defineConfig({
         rewrite: (path) => path.replace(/^\/gsm-api/, ''),
       },
       '/data-api': {
-        target: 'http://localhost:5252',
+        target: 'http://localhost:10000',
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/data-api/, ''),
       },
       // Proxy for Manufacturing Order backend
       '/mo-api': {
-        target: 'http://127.0.0.1:18080',
+        target: 'http://localhost:10000',
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/mo-api/, ''),
+      },
+      '/print-api': {
+        target: 'http://localhost:7001',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/print-api/, ''),
       },
     },
   },
