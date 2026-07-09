@@ -3,7 +3,7 @@ import Product from './components/Product.jsx'
 import ApiStatusFooter from './components/ApiStatusFooter.jsx'
 import ImpactMessage from './components/ImpactMessage.jsx'
 import logo from './assets/logo.jpg'
-import { ENDPOINTS } from './config/apiConfig'
+import { getApiStatusConfig } from './config/runtimeConfig.js'
 import { checkGsmHealth, checkDataHealth } from './services/healthService'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { initGsm } from './services/gsmService'
@@ -28,6 +28,7 @@ function App() {
   const [showGsmInitSuccess, setShowGsmInitSuccess] = useState(false)
   const didInitRef = useRef(false)
   const initLockRef = useRef(false)
+  const apiStatusConfig = useMemo(() => getApiStatusConfig(), [])
 
   const handleInitGsm = async () => {
     // Prevent overlapping calls (e.g., React StrictMode double-invoke, rapid clicks)
@@ -237,7 +238,12 @@ function App() {
           </div>
         )}
       </div>
-      <ApiStatusFooter endpoints={endpoints} pollIntervalMs={10000} timeoutMs={4000} />
+      <ApiStatusFooter
+        endpoints={endpoints}
+        pollIntervalMs={apiStatusConfig.pollIntervalMs}
+        timeoutMs={apiStatusConfig.timeoutMs}
+        debug={apiStatusConfig.debug}
+      />
         </>
       )}
     </div>

@@ -1,24 +1,4 @@
-/**
- * Mapping between product UIDs and their corresponding test sequence files
- * 
- * Each product can have its own test sequence configuration.
- * If a product is not found in the mapping, the default sequence will be used.
- */
-
-export const PRODUCT_TEST_SEQUENCES = {
-  // Product-specific test sequences
-  '61PT00567A': 'testSequence-61PT00567A.json',
-  '61PT00571A': 'testSequence-61PT00571A.json',
-  '61PT00505F': 'testSequence-61PT00505F.json',
-  '71PT00634A': 'testSequence-71PT00634A.json',
-  '71PT00640A': 'testSequence-71PT00640A.json',
-  '71PT00641': 'testSequence-71PT00641.json',
-  '71PT00643A': 'testSequence-71PT00643A.json',
-  
-  
-  // Add your product mappings here
-  // Example: '61PT00567B': 'testSequence-61PT00567B.json',
-}
+import { getTestSequenceConfig } from './runtimeConfig.js'
 
 /**
  * Get the test sequence file name for a given product UID
@@ -26,21 +6,22 @@ export const PRODUCT_TEST_SEQUENCES = {
  * @returns {string} The test sequence file name (e.g., 'testSequence-default.json')
  */
 export function getTestSequenceForProduct(productUid) {
-  if (!productUid) return 'testSequence-default.json'
+  const config = getTestSequenceConfig()
+  const defaultSequence = config.default || 'testSequence-default.json'
+  if (!productUid) return defaultSequence
   
-  const mappedFile = PRODUCT_TEST_SEQUENCES[productUid]
+  const mappedFile = config.byProduct?.[productUid]
   if (mappedFile) {
     return mappedFile
   }
   
   // Return default sequence if no mapping found
-  return 'testSequence-default.json'
+  return defaultSequence
 }
 
 /**
  * 
  */
 export default {
-  PRODUCT_TEST_SEQUENCES,
   getTestSequenceForProduct,
 }

@@ -34,7 +34,7 @@ export default function ApiStatusFooter({
   pollIntervalMs = 10000,
   timeoutMs = 4000,
   method = 'GET',
-  debug = import.meta.env.DEV,
+  debug = false,
 }) {
   const [states, setStates] = useState(() => {
     const init = {}

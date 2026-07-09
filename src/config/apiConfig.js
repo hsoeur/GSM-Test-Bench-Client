@@ -1,5 +1,7 @@
 // Centralized API configuration.
-// Base URLs must come from Vite env variables or local development proxies.
+// Base URLs are loaded from /config/runtime-config.json at application startup.
+
+import { getApiBases } from './runtimeConfig.js'
 
 const stripTrailingSlash = (s) => (s && s.endsWith('/') ? s.slice(0, -1) : s)
 const join = (base, path) => {
@@ -9,16 +11,13 @@ const join = (base, path) => {
   return b ? `${b}${p}` : p
 }
 
-const envBase = (key, fallback) => {
-  const value = import.meta.env[key]
-  return value == null || String(value).trim() === '' ? fallback : String(value).trim()
-}
+const configuredBases = getApiBases()
 
 export const API_BASES = {
-  TEST_GSM: envBase('VITE_API_TEST_GSM_BASE', '/gsm-api'),
-  DATA: envBase('VITE_API_DATA_BASE', '/data-api'),
-  MO: envBase('VITE_API_MO_BASE', '/mo-api'),
-  PRINT: envBase('VITE_API_PRINT_BASE', '/print-api'),
+  TEST_GSM: configuredBases.TEST_GSM,
+  DATA: configuredBases.DATA,
+  MO: configuredBases.MO,
+  PRINT: configuredBases.PRINT,
 }
 
 export const ENDPOINTS = {

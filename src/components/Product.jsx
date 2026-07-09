@@ -9,14 +9,12 @@ import { useOperator } from '../context/OperatorContext.jsx'
 import { getSimCards, toSimOption } from '../services/simCardService.js'
 import { getTestSequenceForProduct } from '../config/productTestSequenceMapping.js'
 import { printBySerialNumber } from '../services/printService.js'
+import { getMachineUid, getPrintLabelConfig, getProductStatusUids } from '../config/runtimeConfig.js'
 
 function Product({ productLabel, simSelectId, currentOperationNumber, productUid, manufacturingOrderUid, assignedSimCardNumber }) {
   const { operator } = useOperator()
   
-  const STATUS_UID = useMemo(() => ({
-    OK: import.meta.env.VITE_PRODUCT_STATUS_OK_UID || 'OK',
-    KO: import.meta.env.VITE_PRODUCT_STATUS_KO_UID || 'KO',
-  }), [])
+  const STATUS_UID = useMemo(() => getProductStatusUids(), [])
 
   // Test sequence state
   const [currentStepIndex, setCurrentStepIndex] = useState(0)
@@ -240,7 +238,7 @@ function Product({ productLabel, simSelectId, currentOperationNumber, productUid
 
   const submitTraceability = async (status) => {
     try {
-      const machineUid = import.meta.env.VITE_MACHINE_UID || 'MO03A'
+      const machineUid = getMachineUid()
       const statusUid = status === 'OK' ? STATUS_UID.OK : STATUS_UID.KO
       
       // Utiliser la ref au lieu du state pour avoir les données synchrones
@@ -708,30 +706,18 @@ function Product({ productLabel, simSelectId, currentOperationNumber, productUid
           setTestData(prev => ({ ...prev, batteryResult: 'ok' }))
           await submitTraceability('OK')
 
-          // Impression étiquettes spécifique aux produits 71PT00634A, 71PT00640A, 71PT00641 et 71PT00643A
-          if (['71PT00634A', '71PT00640A', '71PT00641', '71PT00643A'].includes(productUid)) {
+          // Impression etiquettes configuree dans /config/runtime-config.json.
+          const printLabelConfig = getPrintLabelConfig(productUid)
+          if (printLabelConfig) {
             const mainProduct = scannedProductsRef.current[0]
             if (mainProduct) {
-              const printProductUidMap = {
-                '71PT00634A': '51PT00634A',
-                '71PT00640A': '51PT00640A',
-                '71PT00641': '51PT00641',
-                '71PT00643A': '51PT00643A',
-              }
-              const printProductUid = printProductUidMap[productUid]
               const printParams = {
                 manufacturingOrderUid: mainProduct.ofUid,
-                productUid: printProductUid,
+                productUid: printLabelConfig.productUid,
                 serialNumber: mainProduct.serialLabel,
               }
 
-              const usageSuffixMap = {
-                '71PT00634A': 'TKE',
-                '71PT00640A': 'TKE V2',
-                '71PT00641': 'AMP',
-                '71PT00643A': 'AMP V2',
-              }
-              const usageSuffix = usageSuffixMap[productUid]
+              const usageSuffix = printLabelConfig.usageSuffix || ''
 
               console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
               console.log(`🖨️  IMPRESSION ÉTIQUETTES — ${productUid}`)
@@ -779,27 +765,15 @@ function Product({ productLabel, simSelectId, currentOperationNumber, productUid
           if (!hasTestBatteryAfter) {
             await submitTraceability('OK')
 
-            // Impression étiquettes spécifique aux produits 71PT00634A, 71PT00640A, 71PT00641 et 71PT00643A
-            if (['71PT00634A', '71PT00640A', '71PT00641', '71PT00643A'].includes(productUid)) {
+            // Impression etiquettes configuree dans /config/runtime-config.json.
+            const printLabelConfig = getPrintLabelConfig(productUid)
+            if (printLabelConfig) {
               const mainProduct = scannedProductsRef.current[0]
               if (mainProduct) {
-                const printProductUidMap = {
-                  '71PT00634A': '51PT00634A',
-                  '71PT00640A': '51PT00640A',
-                  '71PT00641': '51PT00641',
-                  '71PT00643A': '51PT00643A',
-                }
-                const printProductUid = printProductUidMap[productUid]
-                const usageSuffixMap = {
-                  '71PT00634A': 'TKE',
-                  '71PT00640A': 'TKE V2',
-                  '71PT00641': 'AMP',
-                  '71PT00643A': 'AMP V2',
-                }
-                const usageSuffix = usageSuffixMap[productUid]
+                const usageSuffix = printLabelConfig.usageSuffix || ''
                 const printParams = {
                   manufacturingOrderUid: mainProduct.ofUid,
-                  productUid: printProductUid,
+                  productUid: printLabelConfig.productUid,
                   serialNumber: mainProduct.serialLabel,
                 }
 
