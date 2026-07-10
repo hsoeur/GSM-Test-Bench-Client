@@ -17,7 +17,8 @@ export async function getCurrentOperators(timeoutMs = 5000) {
       return (a?.firstName || '').localeCompare(b?.firstName || '', 'fr', { sensitivity: 'base' })
     })
     return { ok, status, data: list }
-  } catch (_) {
+  } catch (error) {
+    void error
     return { ok: false, status: 0, data: [] }
   }
 }

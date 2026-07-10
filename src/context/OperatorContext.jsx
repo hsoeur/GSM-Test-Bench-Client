@@ -1,41 +1,39 @@
-import { createContext, useContext, useEffect, useMemo, useState } from 'react'
-
-const OperatorContext = createContext(null)
+import { useCallback, useMemo, useState } from 'react'
+import { OperatorContext } from './operatorContextValue.js'
 
 export function OperatorProvider({ children, storageKey = null }) {
-  const [operator, setOperator] = useState(null)
-
-  useEffect(() => {
-    if (!storageKey) return
+  const [operator, setOperator] = useState(() => {
+    if (!storageKey) return null
     try {
       const s = window.localStorage.getItem(storageKey)
-      if (s) setOperator(JSON.parse(s))
-    } catch (_) {}
-  }, [storageKey])
+      return s ? JSON.parse(s) : null
+    } catch (error) {
+      void error
+      return null
+    }
+  })
 
-  const login = (op) => {
+  const login = useCallback((op) => {
     setOperator(op)
     if (!storageKey) return
     try {
       window.localStorage.setItem(storageKey, JSON.stringify(op))
-    } catch (_) {}
-  }
+    } catch (error) {
+      void error
+    }
+  }, [storageKey])
 
-  const logout = () => {
+  const logout = useCallback(() => {
     setOperator(null)
     if (!storageKey) return
     try {
       window.localStorage.removeItem(storageKey)
-    } catch (_) {}
-  }
+    } catch (error) {
+      void error
+    }
+  }, [storageKey])
 
-  const value = useMemo(() => ({ operator, login, logout, setOperator: login }), [operator])
+  const value = useMemo(() => ({ operator, login, logout, setOperator: login }), [operator, login, logout])
 
   return <OperatorContext.Provider value={value}>{children}</OperatorContext.Provider>
-}
-
-export function useOperator() {
-  const ctx = useContext(OperatorContext)
-  if (!ctx) throw new Error('useOperator must be used within OperatorProvider')
-  return ctx
 }

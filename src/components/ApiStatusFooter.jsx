@@ -69,7 +69,8 @@ export default function ApiStatusFooter({
                 at: new Date().toISOString(),
               })
             }
-          } catch (_) {
+          } catch (error) {
+            void error
             newStates[ep.id] = 'ko'
             delete newDetails[ep.id]
             if (debug) {
@@ -115,7 +116,8 @@ export default function ApiStatusFooter({
                 at: new Date().toISOString(),
               })
             }
-          } catch (e) {
+          } catch (error) {
+            void error
             newStates[ep.id] = 'ko'
             delete newDetails[ep.id]
             if (debug) {
@@ -171,34 +173,22 @@ export default function ApiStatusFooter({
         const gsmModem = boolLabel(newDetails['test']?.modemOk)
 
         // Use console groups for readability
-        // eslint-disable-next-line no-console
         console.group('[Statut APIs]')
-        // eslint-disable-next-line no-console
         console.info(`Dernier contrôle: ${new Date().toLocaleTimeString()}`)
-        // eslint-disable-next-line no-console
         console.group('Api Data')
-        // eslint-disable-next-line no-console
         console.info(`Api Data: ${dataState}`)
-        // eslint-disable-next-line no-console
         console.info(`API (requête 1): ${dataApi}`)
-        // eslint-disable-next-line no-console
         console.info(`MySQL (requête 2): ${dataDb}`)
-        // eslint-disable-next-line no-console
         console.groupEnd()
-        // eslint-disable-next-line no-console
         console.group('Api Test Gsm')
-        // eslint-disable-next-line no-console
         console.info(`Api Test Gsm: ${gsmState}`)
-        // eslint-disable-next-line no-console
         console.info(`COM: ${gsmCom}`)
-        // eslint-disable-next-line no-console
         console.info(`Modem Gsm: ${gsmModem}`)
-        // eslint-disable-next-line no-console
         console.groupEnd()
-        // eslint-disable-next-line no-console
         console.groupEnd()
       }
-    } catch (_) {
+    } catch (error) {
+      void error
       // ignore logging errors
     }
     setStates(newStates)

@@ -5,7 +5,7 @@ import { callGsm, hangupGsm } from '../services/gsmService.js'
 import { getManufacturingOrderByUid } from '../services/manufacturingOrderService.js'
 import { createProductTraceability, getLatestProductTraceability } from '../services/productTraceabilityService.js'
 import { createKitTraceability } from '../services/kitTraceabilityService.js'
-import { useOperator } from '../context/OperatorContext.jsx'
+import { useOperator } from '../context/useOperator.js'
 import { getSimCards, toSimOption } from '../services/simCardService.js'
 import { getTestSequenceForProduct } from '../config/productTestSequenceMapping.js'
 import { printBySerialNumber } from '../services/printService.js'
@@ -33,7 +33,7 @@ function Product({ productLabel, simSelectId, currentOperationNumber, productUid
   })
   
   const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
+  const [, setLoading] = useState(false)
   const [retestConfirmation, setRetestConfirmation] = useState(null) // { productUid, serialLabel, ofUid } when confirmation needed
   const [testSequence, setTestSequence] = useState(null)
   const [testSequenceFileName, setTestSequenceFileName] = useState('')
@@ -42,7 +42,7 @@ function Product({ productLabel, simSelectId, currentOperationNumber, productUid
   const testStartTsRef = useRef(null) // Ref synchrone pour le timestamp de début
 
   // Default first step when no test sequence is loaded yet
-  const defaultFirstStep = {
+  const defaultFirstStep = useMemo(() => ({
     id: 'scan-label',
     instruction: "Scanner l'étiquette de lot du produit.",
     pictogram: 'barcode-scan',
@@ -52,7 +52,7 @@ function Product({ productLabel, simSelectId, currentOperationNumber, productUid
       validation: 'label',
       autoFocus: true
     }
-  }
+  }), [])
 
   const steps = useMemo(() => {
     const sequence = testSequence?.testSequence || []
@@ -74,7 +74,7 @@ function Product({ productLabel, simSelectId, currentOperationNumber, productUid
       return [simStep, ...sequence]
     }
     return sequence
-  }, [testSequence, testData.scannedProducts, assignedSimCardNumber])
+  }, [testSequence, testData.scannedProducts, assignedSimCardNumber, defaultFirstStep])
   
   const currentStep = steps[currentStepIndex] || null
 
@@ -136,7 +136,7 @@ function Product({ productLabel, simSelectId, currentOperationNumber, productUid
       }
     })()
     return () => { cancelled = true }
-  }, [])
+  }, [assignedSimCardNumber, productLabel])
 
   // Restore last selected SIM from localStorage
   useEffect(() => {
@@ -145,7 +145,8 @@ function Product({ productLabel, simSelectId, currentOperationNumber, productUid
       if (saved) {
         setTestData(prev => ({ ...prev, selectedSim: saved }))
       }
-    } catch (e) {
+    } catch (error) {
+      void error
       // ignore
     }
   }, [simSelectId])
@@ -616,7 +617,9 @@ function Product({ productLabel, simSelectId, currentOperationNumber, productUid
           setTestData(prev => ({ ...prev, selectedSim: value }))
           try {
             localStorage.setItem(`sim:last:${simSelectId}`, value)
-          } catch {}
+          } catch (error) {
+            void error
+          }
           setCurrentStepIndex(prev => prev + 1)
           break
         }
@@ -671,7 +674,9 @@ function Product({ productLabel, simSelectId, currentOperationNumber, productUid
           try {
             await hangupGsm()
             setTestData(prev => ({ ...prev, gsmCallStatus: 'idle' }))
-          } catch {}
+          } catch (error) {
+            void error
+          }
 
           if (value === 'ko') {
             setTestData(prev => ({ ...prev, phonieResult: 'ko' }))

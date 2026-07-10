@@ -11,7 +11,8 @@ function safeToString(body) {
   if (typeof body === 'string') return body
   try {
     return JSON.stringify(body)
-  } catch {
+  } catch (error) {
+    void error
     return '[unserializable body]'
   }
 }
@@ -29,9 +30,11 @@ export async function request(url, { method = 'GET', timeout = 4000, headers = {
   // Log request
   try {
     const bodyPreview = truncate(safeToString(rest?.body))
-    // eslint-disable-next-line no-console
+     
     console.log(`[HTTP ${reqId}] ➜ ${method} ${url} @ ${ts()}`, { headers, timeout, body: bodyPreview })
-  } catch {}
+  } catch (error) {
+    void error
+  }
 
   try {
     const res = await fetch(url, {
@@ -46,16 +49,16 @@ export async function request(url, { method = 'GET', timeout = 4000, headers = {
       const clone = res.clone()
       const text = await clone.text()
       const preview = truncate(text)
-      // eslint-disable-next-line no-console
+       
       console.log(`[HTTP ${reqId}] ⇦ ${res.status} ${res.ok ? 'OK' : 'ERR'} @ ${ts()}`, { body: preview })
     } catch (e) {
-      // eslint-disable-next-line no-console
+       
       console.warn(`[HTTP ${reqId}] ⇦ (response logging failed)`, String(e?.message || e))
     }
 
     return res
   } catch (err) {
-    // eslint-disable-next-line no-console
+     
     console.error(`[HTTP ${reqId}] ✖ Error @ ${ts()}`, String(err?.message || err))
     throw err
   } finally {
@@ -68,7 +71,8 @@ export async function getJson(url, opts = {}) {
   let data = null
   try {
     data = await res.json()
-  } catch (_) {
+  } catch (error) {
+    void error
     // ignore JSON parse errors; keep data as null
   }
   return { ok: res.ok, status: res.status, data }

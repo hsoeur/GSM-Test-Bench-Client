@@ -19,9 +19,14 @@ export async function printBySerialNumber({ manufacturingOrderUid, productUid, u
       headers: { accept: 'application/json' },
     })
     let data = null
-    try { data = await res.json() } catch (_) {}
+    try {
+      data = await res.json()
+    } catch (error) {
+      void error
+    }
     return { ok: res.ok, status: res.status, data }
-  } catch (e) {
+  } catch (error) {
+    void error
     return { ok: false, status: 0, data: null }
   }
 }

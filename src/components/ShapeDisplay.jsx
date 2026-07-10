@@ -4,7 +4,7 @@ import greenShape from '../assets/green_shape.png'
 import redShape from '../assets/red_shape.png'
 import yellowShape from '../assets/yellow_shape.png'
 
-function ShapeDisplay({ serial = '', sim = '', ready = false, shape: forcedShape, style, overlayMessage }) {
+function ShapeDisplay({ sim = '', ready = false, shape: forcedShape, style, overlayMessage }) {
   const autoShape = sim ? (ready ? 'blue' : 'yellow') : 'gray'
   const shape = forcedShape ?? autoShape
 

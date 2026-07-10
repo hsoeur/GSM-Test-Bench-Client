@@ -8,20 +8,33 @@ import { checkGsmHealth, checkDataHealth } from './services/healthService'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { initGsm } from './services/gsmService'
 import OperatorAuth from './components/OperatorAuth.jsx'
-import { useOperator } from './context/OperatorContext.jsx'
+import { useOperator } from './context/useOperator.js'
 import ManufacturingOrderScanner from './components/ManufacturingOrderScanner.jsx'
 import OperationSelector from './components/OperationSelector.jsx'
 import SimAssignment from './components/SimAssignment.jsx'
 
+function readStorageJson(key) {
+  try {
+    const raw = window.localStorage.getItem(key)
+    return raw ? JSON.parse(raw) : null
+  } catch (error) {
+    void error
+    return null
+  }
+}
+
 function App() {
   const { operator, login, logout } = useOperator()
-  const [mo, setMo] = useState(null) // { uid, data }
-  const [operation, setOperation] = useState(null)
+  const [mo, setMo] = useState(() => readStorageJson('ui-test-gsm:selectedMO')) // { uid, data }
+  const [operation, setOperation] = useState(() => readStorageJson('ui-test-gsm:selectedOP'))
   const [simAssignments, setSimAssignments] = useState(() => {
     try {
       const raw = window.sessionStorage.getItem('ui-test-gsm:simAssignments')
       return raw ? JSON.parse(raw) : null
-    } catch { return null }
+    } catch (error) {
+      void error
+      return null
+    }
   })
   const [gsmInitState, setGsmInitState] = useState('idle') // idle | pending | success | error
   const [gsmInitError, setGsmInitError] = useState(null)
@@ -56,7 +69,6 @@ function App() {
       didInitRef.current = true
       handleInitGsm()
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []) 
 
   // Auto-hide the success banner after 2 seconds, but keep app enabled
@@ -67,29 +79,22 @@ function App() {
     }
   }, [gsmInitState, showGsmInitSuccess])
 
-  // Optional: persist MO in localStorage for convenience during a session
-  useEffect(() => {
-    try {
-      const raw = window.localStorage.getItem('ui-test-gsm:selectedMO')
-      if (raw && !mo) setMo(JSON.parse(raw))
-      const rawOp = window.localStorage.getItem('ui-test-gsm:selectedOP')
-      if (rawOp && !operation) setOperation(JSON.parse(rawOp))
-    } catch {}
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
   useEffect(() => {
     try {
       if (mo) window.localStorage.setItem('ui-test-gsm:selectedMO', JSON.stringify(mo))
       else window.localStorage.removeItem('ui-test-gsm:selectedMO')
-    } catch {}
+    } catch (error) {
+      void error
+    }
   }, [mo])
 
   useEffect(() => {
     try {
       if (operation) window.localStorage.setItem('ui-test-gsm:selectedOP', JSON.stringify(operation))
       else window.localStorage.removeItem('ui-test-gsm:selectedOP')
-    } catch {}
+    } catch (error) {
+      void error
+    }
   }, [operation])
 
   const endpoints = useMemo(() => ([
@@ -106,14 +111,18 @@ function App() {
     setSimAssignments(assignments)
     try {
       window.sessionStorage.setItem('ui-test-gsm:simAssignments', JSON.stringify(assignments))
-    } catch {}
+    } catch (error) {
+      void error
+    }
   }
 
   const handleChangeSimAssignments = () => {
     setSimAssignments(null)
     try {
       window.sessionStorage.removeItem('ui-test-gsm:simAssignments')
-    } catch {}
+    } catch (error) {
+      void error
+    }
   }
 
   const handleAuthenticated = (op) => {

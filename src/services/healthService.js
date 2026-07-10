@@ -15,7 +15,8 @@ export async function checkGsmHealth(timeoutMs = 4000) {
         modemOk: !!data?.modemOk,
       },
     }
-  } catch (e) {
+  } catch (error) {
+    void error
     return { state: 'ko' }
   }
 }
@@ -41,7 +42,8 @@ export async function checkDataHealth(timeoutMs = 4000) {
         database: dbOk,
       },
     }
-  } catch (e) {
+  } catch (error) {
+    void error
     return { state: 'ko' }
   }
 }
