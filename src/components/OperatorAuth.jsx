@@ -40,7 +40,9 @@ export default function OperatorAuth({
       if (autoSelectIfSingle && res.data.length === 1) {
         setSelectedUid(String(res.data[0].userUid))
       }
-    } catch (_) {}
+    } catch (error) {
+      void error
+    }
   }
 
   useEffect(() => {
@@ -53,7 +55,9 @@ export default function OperatorAuth({
     if (storageKey) {
       try {
         window.localStorage.setItem(storageKey, JSON.stringify(selectedOperator))
-      } catch (_) {}
+      } catch (error) {
+        void error
+      }
     }
     if (typeof onAuthenticated === 'function') onAuthenticated(selectedOperator)
   }

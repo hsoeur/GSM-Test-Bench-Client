@@ -11,26 +11,37 @@ function OperationSelector({ productUid, onSelected, title = 'Sélectionner une 
 
   useEffect(() => {
     if (!productUid) return
-    setLoading(true)
-    setError('')
-    setOps([])
-    getOperationsByProductUid(productUid)
-      .then(({ ok, status, data }) => {
+    let cancelled = false
+
+    const loadOperations = async () => {
+      setLoading(true)
+      setError('')
+      setOps([])
+      try {
+        const { ok, status, data } = await getOperationsByProductUid(productUid)
+        if (cancelled) return
         if (!ok || !Array.isArray(data)) {
           setError(`Impossible de charger les opérations (HTTP ${status || '—'})`)
           setOps([])
           return
         }
-        // sort by numeric operationNumber asc if possible
         const normalized = data.map((o) => ({
           ...o,
           _num: Number(String(o.operationNumber || '').replace(/[^0-9]/g, '')),
         }))
         normalized.sort((a, b) => (a._num || 0) - (b._num || 0))
         setOps(normalized)
-      })
-      .catch((e) => setError(String(e?.message || e)))
-      .finally(() => setLoading(false))
+      } catch (e) {
+        if (!cancelled) setError(String(e?.message || e))
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+
+    loadOperations()
+    return () => {
+      cancelled = true
+    }
   }, [productUid])
 
   const filtered = useMemo(() => {

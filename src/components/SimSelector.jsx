@@ -1,5 +1,4 @@
 function SimSelector({
-  id = 'simSelect',
   label = 'Choisir une carte SIM',
   options = [],
   value = '',

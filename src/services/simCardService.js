@@ -18,7 +18,8 @@ export async function getSimCards(timeoutMs = 5000) {
       return (a?.simCardNumber || '').localeCompare(b?.simCardNumber || '', 'fr', { numeric: true, sensitivity: 'base' })
     })
     return { ok, status, data: list }
-  } catch (_) {
+  } catch (error) {
+    void error
     return { ok: false, status: 0, data: [] }
   }
 }

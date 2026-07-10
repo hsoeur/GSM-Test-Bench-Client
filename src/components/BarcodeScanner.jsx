@@ -29,10 +29,14 @@ function BarcodeScanner({ title = 'Scanner de code-barres', onScan, autoStart = 
     return () => {
       try {
         controlsRef.current?.stop()
-      } catch {}
+      } catch (error) {
+        void error
+      }
       try {
         readerRef.current?.reset()
-      } catch {}
+      } catch (error) {
+        void error
+      }
     }
   }, [])
 
@@ -51,7 +55,7 @@ function BarcodeScanner({ title = 'Scanner de code-barres', onScan, autoStart = 
       const controls = await readerRef.current.decodeFromVideoDevice(
         deviceId || undefined,
         videoRef.current,
-        (result, err) => {
+        (result) => {
           if (result) {
             const text = result.getText()
             setLastResult(text)
@@ -69,10 +73,14 @@ function BarcodeScanner({ title = 'Scanner de code-barres', onScan, autoStart = 
   const stopScanning = () => {
     try {
       controlsRef.current?.stop()
-    } catch {}
+    } catch (error) {
+      void error
+    }
     try {
       readerRef.current?.reset()
-    } catch {}
+    } catch (error) {
+      void error
+    }
     setIsScanning(false)
   }
 

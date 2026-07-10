@@ -12,7 +12,8 @@ export async function initGsm(timeoutMs = 4000) {
       body: '',
     })
     return { ok: res.ok, status: res.status }
-  } catch (e) {
+  } catch (error) {
+    void error
     return { ok: false, status: 0 }
   }
 }
@@ -30,9 +31,12 @@ export async function callGsm({ phoneNumber, audioOk }, timeoutMs = 20000) {
     let data = null
     try {
       data = await res.json()
-    } catch (_) {}
+    } catch (error) {
+      void error
+    }
     return { ok: res.ok, status: res.status, data }
-  } catch (e) {
+  } catch (error) {
+    void error
     return { ok: false, status: 0, data: null }
   }
 }
@@ -48,7 +52,8 @@ export async function hangupGsm(timeoutMs = 10000) {
       body: '',
     })
     return { ok: res.ok, status: res.status }
-  } catch (e) {
+  } catch (error) {
+    void error
     return { ok: false, status: 0 }
   }
 }
