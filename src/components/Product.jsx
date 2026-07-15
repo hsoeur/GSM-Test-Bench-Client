@@ -6,7 +6,7 @@ import { getManufacturingOrderByUid } from '../services/manufacturingOrderServic
 import { createProductTraceability, getLatestProductTraceability } from '../services/productTraceabilityService.js'
 import { createKitTraceability } from '../services/kitTraceabilityService.js'
 import { useOperator } from '../context/useOperator.js'
-import { getSimCards, toSimOption } from '../services/simCardService.js'
+import { loadProductSimCards } from '../services/simCardLoadingService.js'
 import { getTestSequenceForProduct } from '../config/productTestSequenceMapping.js'
 import { printConfiguredLabelsForProduct } from '../services/labelPrintingService.js'
 import { getMachineUid, getProductStatusUids } from '../config/runtimeConfig.js'
@@ -82,53 +82,22 @@ function Product({ productLabel, simSelectId, currentOperationNumber, productUid
   useEffect(() => {
     let cancelled = false
     ;(async () => {
-      console.log('')
-      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-      console.log(`📡 [${productLabel}] CHARGEMENT DES CARTES SIM`)
-      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-      if (assignedSimCardNumber) {
-        console.log(`🔒 SIM assignée pour ce produit : ${assignedSimCardNumber}`)
-      } else {
-        console.log('🔓 Aucune SIM assignée — sélection libre')
-      }
       try {
-        const { ok, status, data } = await getSimCards(5000)
-        if (!ok) {
-          console.error(`❌ [${productLabel}] Échec récupération SIM — HTTP ${status || '—'}`)
-          console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-          setError(`Échec de récupération des SIM (HTTP ${status || '—'})`)
-          if (!cancelled) {
-            setTestData(prev => ({ ...prev, simOptions: [], simList: [] }))
-          }
-        } else {
-          const list = Array.isArray(data) ? data : []
-          const opts = list.map(toSimOption)
-          console.log(`✅ [${productLabel}] ${list.length} carte(s) SIM récupérée(s) :`)
-          list.forEach(s => console.log(`   • ${s.simCardUid} | ${s.simCardNumber} | ${s.provider || '—'} | ${s.phoneNumber || '—'}`))
-          if (!cancelled) {
-            const autoSim = assignedSimCardNumber
-              ? list.find(s => String(s.simCardNumber || '') === String(assignedSimCardNumber))
-              : null
-            if (assignedSimCardNumber) {
-              if (autoSim) {
-                console.log(`🎯 [${productLabel}] SIM auto-sélectionnée : ${autoSim.simCardUid} (${autoSim.simCardNumber})`)
-              } else {
-                console.warn(`⚠️  [${productLabel}] SIM assignée ${assignedSimCardNumber} introuvable dans la liste !`)
-              }
-            }
-            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-            console.log('')
-            setTestData(prev => ({
-              ...prev,
-              simOptions: opts,
-              simList: list,
-              selectedSim: autoSim ? autoSim.simCardUid : prev.selectedSim,
-            }))
-          }
+        const result = await loadProductSimCards({ productLabel, assignedSimCardNumber, timeoutMs: 5000 })
+        if (cancelled) return
+        if (!result.ok) {
+          setError(result.errorMessage)
+          setTestData(prev => ({ ...prev, simOptions: [], simList: [] }))
+          return
         }
+        setTestData(prev => ({
+          ...prev,
+          simOptions: result.simOptions,
+          simList: result.simList,
+          selectedSim: result.selectedSim || prev.selectedSim,
+        }))
       } catch (e) {
         console.error(`❌ [${productLabel}] Exception lors du chargement des SIM :`, e)
-        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
         setError("Impossible de récupérer la liste des cartes SIM.")
         if (!cancelled) {
           setTestData(prev => ({ ...prev, simOptions: [], simList: [] }))
