@@ -8,8 +8,8 @@ import { createKitTraceability } from '../services/kitTraceabilityService.js'
 import { useOperator } from '../context/useOperator.js'
 import { getSimCards, toSimOption } from '../services/simCardService.js'
 import { getTestSequenceForProduct } from '../config/productTestSequenceMapping.js'
-import { printBySerialNumber } from '../services/printService.js'
-import { getMachineUid, getPrintLabelConfig, getProductStatusUids } from '../config/runtimeConfig.js'
+import { printConfiguredLabelsForProduct } from '../services/labelPrintingService.js'
+import { getMachineUid, getProductStatusUids } from '../config/runtimeConfig.js'
 
 function Product({ productLabel, simSelectId, currentOperationNumber, productUid, manufacturingOrderUid, assignedSimCardNumber }) {
   const { operator } = useOperator()
@@ -711,35 +711,7 @@ function Product({ productLabel, simSelectId, currentOperationNumber, productUid
           setTestData(prev => ({ ...prev, batteryResult: 'ok' }))
           await submitTraceability('OK')
 
-          // Impression etiquettes configuree dans /config/runtime-config.json.
-          const printLabelConfig = getPrintLabelConfig(productUid)
-          if (printLabelConfig) {
-            const mainProduct = scannedProductsRef.current[0]
-            if (mainProduct) {
-              const printParams = {
-                manufacturingOrderUid: mainProduct.ofUid,
-                productUid: printLabelConfig.productUid,
-                serialNumber: mainProduct.serialLabel,
-              }
-
-              const usageSuffix = printLabelConfig.usageSuffix || ''
-
-              console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-              console.log(`🖨️  IMPRESSION ÉTIQUETTES — ${productUid}`)
-              console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-
-              console.log(`🖨️  [1/2] Impression étiquette Portail ASM (Gateway Montage Portail ASM ${usageSuffix})`)
-              const print1 = await printBySerialNumber({ ...printParams, uidUsage: `Gateway Montage Portail ASM ${usageSuffix}` })
-              console.log('   └─ Status HTTP:', print1.status, '| OK:', print1.ok)
-
-              console.log(`🖨️  [2/2] Impression étiquette Désignation (Gateway Montage Mac ${usageSuffix})`)
-              const print2 = await printBySerialNumber({ ...printParams, uidUsage: `Gateway Montage Mac ${usageSuffix}` })
-              console.log('   └─ Status HTTP:', print2.status, '| OK:', print2.ok)
-
-              console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-              console.log('')
-            }
-          }
+          await printConfiguredLabelsForProduct(productUid, scannedProductsRef.current[0])
 
           setCurrentStepIndex(prev => prev + 1)
           break
@@ -770,34 +742,7 @@ function Product({ productLabel, simSelectId, currentOperationNumber, productUid
           if (!hasTestBatteryAfter) {
             await submitTraceability('OK')
 
-            // Impression etiquettes configuree dans /config/runtime-config.json.
-            const printLabelConfig = getPrintLabelConfig(productUid)
-            if (printLabelConfig) {
-              const mainProduct = scannedProductsRef.current[0]
-              if (mainProduct) {
-                const usageSuffix = printLabelConfig.usageSuffix || ''
-                const printParams = {
-                  manufacturingOrderUid: mainProduct.ofUid,
-                  productUid: printLabelConfig.productUid,
-                  serialNumber: mainProduct.serialLabel,
-                }
-
-                console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-                console.log(`🖨️  IMPRESSION ÉTIQUETTES — ${productUid}`)
-                console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-
-                console.log(`🖨️  [1/2] Impression étiquette Portail ASM (Gateway Montage Portail ASM ${usageSuffix})`)
-                const print1 = await printBySerialNumber({ ...printParams, uidUsage: `Gateway Montage Portail ASM ${usageSuffix}` })
-                console.log('   └─ Status HTTP:', print1.status, '| OK:', print1.ok)
-
-                console.log(`🖨️  [2/2] Impression étiquette Désignation (Gateway Montage Mac ${usageSuffix})`)
-                const print2 = await printBySerialNumber({ ...printParams, uidUsage: `Gateway Montage Mac ${usageSuffix}` })
-                console.log('   └─ Status HTTP:', print2.status, '| OK:', print2.ok)
-
-                console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-                console.log('')
-              }
-            }
+            await printConfiguredLabelsForProduct(productUid, scannedProductsRef.current[0])
           }
           setCurrentStepIndex(prev => prev + 1)
           break
