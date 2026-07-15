@@ -9,6 +9,7 @@ import { useOperator } from '../context/useOperator.js'
 import { loadProductSimCards } from '../services/simCardLoadingService.js'
 import { loadProductTestSequence } from '../services/testSequenceLoadingService.js'
 import { printConfiguredLabelsForProduct } from '../services/labelPrintingService.js'
+import { parseScannedProductLabel } from '../services/scannedLabelParser.js'
 import { getMachineUid, getProductStatusUids } from '../config/runtimeConfig.js'
 
 function Product({ productLabel, simSelectId, currentOperationNumber, productUid, manufacturingOrderUid, assignedSimCardNumber }) {
@@ -378,10 +379,10 @@ function Product({ productLabel, simSelectId, currentOperationNumber, productUid
       // Gérer tous les scans (scan-label, scan-label-2, etc.)
       if (stepId.startsWith('scan-label')) {
         // Parse label and fetch MO
-        const raw = String(value)
-        const parts = raw.split(';').map((p) => p.trim())
-        const serialPart = parts[1] || ''
-        const ofPart = parts[2] || ''
+        const parsedLabel = parseScannedProductLabel(value)
+        const raw = parsedLabel.raw
+        const serialPart = parsedLabel.serialNumber
+        const ofPart = parsedLabel.manufacturingOrderUid
 
         console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
         console.log('📦 SCAN PRODUIT')
