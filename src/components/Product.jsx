@@ -3,13 +3,14 @@ import TestStep from './TestStep.jsx'
 import ImpactMessage from './ImpactMessage.jsx'
 import { callGsm, hangupGsm } from '../services/gsmService.js'
 import { getManufacturingOrderByUid } from '../services/manufacturingOrderService.js'
-import { createProductTraceability, getLatestProductTraceability } from '../services/productTraceabilityService.js'
+import { createProductTraceability } from '../services/productTraceabilityService.js'
 import { createKitTraceability } from '../services/kitTraceabilityService.js'
 import { useOperator } from '../context/useOperator.js'
 import { loadProductSimCards } from '../services/simCardLoadingService.js'
 import { loadProductTestSequence } from '../services/testSequenceLoadingService.js'
 import { printConfiguredLabelsForProduct } from '../services/labelPrintingService.js'
 import { parseScannedProductLabel } from '../services/scannedLabelParser.js'
+import { validateScannedProduct } from '../services/scannedProductValidationService.js'
 import { getMachineUid, getProductStatusUids } from '../config/runtimeConfig.js'
 
 function Product({ productLabel, simSelectId, currentOperationNumber, productUid, manufacturingOrderUid, assignedSimCardNumber }) {
@@ -398,132 +399,27 @@ function Product({ productLabel, simSelectId, currentOperationNumber, productUid
           setTestData(prev => ({ ...prev, testStartTs: Date.now() }))
         }
 
-        // Récupérer les infos de l'OF pour obtenir le productUid
-        console.log('🌐 API CALL #1 - getManufacturingOrderByUid')
-        console.log('   └─ Endpoint: /api/ManufacturingOrder/by-manufacturing-order-uid')
-        console.log('   └─ Paramètre: manufacturingOrderUid =', ofPart)
-        
-        const { ok, data, status } = await getManufacturingOrderByUid(ofPart)
-        
-        console.log('📥 RÉPONSE:')
-        console.log('   └─ Status HTTP:', status)
-        console.log('   └─ Success:', ok)
-        console.log('   └─ Data:', data)
-        console.log('')
-
-        if (!ok || !data) {
-          console.error('❌ Échec récupération OF - Status:', status)
-          setError(`Échec récupération OF (${status})`)
-          return
-        }
-
-        const scannedProductUid = String(data.productUid || '')
-        console.log('✅ ProductUid récupéré (étiquette):', scannedProductUid)
-        console.log('🏭 ProductUid OF initial (traça):', productUid)
-        console.log('📋 ManufacturingOrderUid OF initial (traça):', manufacturingOrderUid)
-        console.log('')
-
-        // Check previous operation status using operationUid from current step config
-        const loadedSteps = testSequence?.testSequence || []
-        const currentStepData = loadedSteps.find(step => step.id === stepId)
-        const previousOperationUid = currentStepData?.actionConfig?.previousOperationUid || null
-        
-        // Use checkProductUid from step config for N-1 verification, otherwise fall back to scanned productUid
-        const productUidForCheck = currentStepData?.actionConfig?.checkProductUid || currentStepData?.actionConfig?.productUid || scannedProductUid
-        
-        if (previousOperationUid) {
-          console.log('🌐 API CALL #2 - getLatestProductTraceability (vérification N-1)')
-          console.log('   └─ Endpoint: /api/ProductTraceabilities/latest-by-product-serial-and-operation')
-          console.log('   └─ Paramètres:')
-          console.log('      • productUid:', productUidForCheck, currentStepData?.actionConfig?.productUid ? '(depuis config étape)' : '(depuis OF)')
-          console.log('      • serialNumber:', serialPart)
-          console.log('      • operationUid:', previousOperationUid)
-
-          const { ok: ok2, status: st2, data: prevTrace } = await getLatestProductTraceability(
-            productUidForCheck,
-            serialPart,
-            previousOperationUid,
-          )
-
-          console.log('📥 RÉPONSE:')
-          console.log('   └─ Status HTTP:', st2)
-          console.log('   └─ Success:', ok2)
-          console.log('   └─ Data:', prevTrace)
-          console.log('')
-
-          if (!ok2) {
-            console.error('❌ Échec vérification étape précédente')
-            if (st2 === 404) {
-              console.error('   └─ 404: Aucune traçabilité trouvée')
-              setError("Aucune traçabilité trouvée pour l'opération précédente.")
-            } else {
-              console.error('   └─ Status HTTP:', st2)
-              setError(`Échec vérification étape précédente (${st2})`)
-            }
-            return
-          }
-
-          // Vérifier que la traçabilité précédente a un statut OK
-          if (!prevTrace || prevTrace.productStatusUid !== STATUS_UID.OK) {
-            console.error('❌ Produit NON VALIDE à l\'étape précédente')
-            console.log('   └─ Status trouvé:', prevTrace?.productStatusUid || '(aucun)')
-            setError("Produit non valide à l'étape de fabrication précédente.")
-            return
-          }
-
-          console.log('✅ Produit VALIDE à l\'étape précédente')
-          console.log('   └─ Status:', prevTrace.productStatusUid)
-          console.log('')
-        } else {
-          console.log('⚠️  Aucune vérification N-1 configurée (previousOperationUid manquant)')
-          console.log('')
-        }
-
-        // productUid pour la traçabilité :
-        // - Si actionConfig.productUid existe (cas mère/fille 61PT00505F), on l'utilise
-        // - Sinon, on utilise le productUid de l'OF sélectionné au démarrage (prop)
-        // NOTE : checkProductUid n'est utilisé QUE pour la vérification N-1, jamais pour la traça
-        const productUidForTraceability = currentStepData?.actionConfig?.productUid || productUid
-
-        console.log('🌐 API CALL #3 - getLatestProductTraceability')
-        console.log('   └─ Endpoint: /api/ProductTraceability/latest')
-        console.log('   └─ Paramètres:')
-        console.log('      • productUid:', productUidForTraceability, currentStepData?.actionConfig?.productUid ? '(config étape)' : '(OF initial)')
-        console.log('      • serialNumber:', serialPart)
-        console.log('      • operationNumber:', currentOperationNumber)
-
-        const { ok: ok3, status: st3, data: latestTrace } = await getLatestProductTraceability(
-          productUidForTraceability,
-          serialPart,
+        const scanValidation = await validateScannedProduct({
+          parsedLabel,
+          stepId,
+          testSequence,
+          productUid,
+          manufacturingOrderUid,
           currentOperationNumber,
-        )
+          okStatusUid: STATUS_UID.OK,
+        })
 
-        console.log('📥 RÉPONSE:')
-        console.log('   └─ Status HTTP:', st3)
-        console.log('   └─ Success:', ok3)
-        console.log('   └─ Data:', latestTrace)
-        console.log('')
-
-        if (ok3 && latestTrace && latestTrace.productStatusUid === STATUS_UID.OK) {
-          // Product already tested OK - ask for confirmation to retest
-          console.warn('⚠️  Produit déjà testé BON à cette opération')
-          console.log('   └─ Demande de confirmation de retest...')
-          console.log('')
-          setRetestConfirmation({ productUid: productUidForTraceability, serialLabel: serialPart, ofUid: manufacturingOrderUid })
+        if (scanValidation.type === 'error') {
+          setError(scanValidation.errorMessage)
           return
         }
 
-        console.log('✅ Produit non encore testé (ou KO) à cette opération')
-        console.log('')
-
-        // productUid : actionConfig.productUid si présent (mère/fille), sinon prop OF initial
-        // ofUid : toujours le manufacturingOrderUid sélectionné au démarrage
-        const scannedProduct = {
-          labelScan: raw,
-          serialLabel: serialPart,
-          ofUid: manufacturingOrderUid,
-          productUid: productUidForTraceability
+        if (scanValidation.type === 'retest') {
+          setRetestConfirmation(scanValidation.retestConfirmation)
+          return
         }
+
+        const scannedProduct = scanValidation.scannedProduct
 
         // Ajouter le produit scanné à la ref (synchrone)
         scannedProductsRef.current = [...scannedProductsRef.current, scannedProduct]
