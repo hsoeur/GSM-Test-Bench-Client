@@ -7,7 +7,7 @@ import { createProductTraceability, getLatestProductTraceability } from '../serv
 import { createKitTraceability } from '../services/kitTraceabilityService.js'
 import { useOperator } from '../context/useOperator.js'
 import { loadProductSimCards } from '../services/simCardLoadingService.js'
-import { getTestSequenceForProduct } from '../config/productTestSequenceMapping.js'
+import { loadProductTestSequence } from '../services/testSequenceLoadingService.js'
 import { printConfiguredLabelsForProduct } from '../services/labelPrintingService.js'
 import { getMachineUid, getProductStatusUids } from '../config/runtimeConfig.js'
 
@@ -126,52 +126,14 @@ function Product({ productLabel, simSelectId, currentOperationNumber, productUid
 
     let cancelled = false
     ;(async () => {
-      console.log('')
-      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-      console.log('📋 CHARGEMENT DE LA SÉQUENCE DE TEST (depuis OF)')
-      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-      console.log('🔍 ProductUid (OF):', productUid)
-      console.log('🏷️  Manufacturing Order:', manufacturingOrderUid)
-      
-      const sequenceFileName = getTestSequenceForProduct(productUid)
-      const sequenceUrl = `${window.location.origin}/config/${sequenceFileName}`
-      
-      console.log('📄 Fichier sélectionné:', sequenceFileName)
-      console.log('🌐 URL complète:', sequenceUrl)
-      
-      try {
-        const cacheBuster = `?t=${Date.now()}`
-        const response = await fetch(`/config/${sequenceFileName}${cacheBuster}`)
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`)
-        }
-        const loadedSequence = await response.json()
-        
-        if (!cancelled) {
-          setTestSequence(loadedSequence)
-          setTestSequenceFileName(sequenceFileName)
-          
-          console.log('✅ Séquence chargée avec succès!')
-          console.log('📊 Nombre d\'étapes:', loadedSequence?.testSequence?.length || 0)
-          console.log('📋 Liste des étapes:')
-          loadedSequence?.testSequence?.forEach((step, i) => {
-            console.log(`   ${i + 1}. [${step.id}] ${step.instruction}`)
-            if (step.image) console.log(`      📷 Image: ${step.image}`)
-          })
-          console.log('📝 Contenu complet:', JSON.stringify(loadedSequence, null, 2))
-          console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-          console.log('')
-        }
-      } catch (e) {
-        if (!cancelled) {
-          console.error('❌ ERREUR lors du chargement de la séquence')
-          console.error('   └─ Fichier:', sequenceFileName)
-          console.error('   └─ Erreur:', e)
-          console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-          console.log('')
-          setError(`Impossible de charger la séquence de test: ${sequenceFileName}`)
-        }
+      const result = await loadProductTestSequence({ productUid, manufacturingOrderUid })
+      if (cancelled) return
+      if (!result.ok) {
+        setError(result.errorMessage)
+        return
       }
+      setTestSequence(result.sequence)
+      setTestSequenceFileName(result.fileName)
     })()
     return () => { cancelled = true }
   }, [productUid, manufacturingOrderUid])
