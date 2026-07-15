@@ -11,6 +11,7 @@ import { loadProductTestSequence } from '../services/testSequenceLoadingService.
 import { printConfiguredLabelsForProduct } from '../services/labelPrintingService.js'
 import { parseScannedProductLabel } from '../services/scannedLabelParser.js'
 import { validateScannedProduct } from '../services/scannedProductValidationService.js'
+import { buildProductTraceabilityPayload } from '../services/traceabilityPayloadBuilder.js'
 import { getMachineUid, getProductStatusUids } from '../config/runtimeConfig.js'
 
 function Product({ productLabel, simSelectId, currentOperationNumber, productUid, manufacturingOrderUid, assignedSimCardNumber }) {
@@ -196,21 +197,14 @@ function Product({ productLabel, simSelectId, currentOperationNumber, productUid
         console.log(`🌐 API CALL - createProductTraceability [Produit ${i + 1}/${productsToTraceFiltered.length}]${isMotherDaughterPair ? ' (Mère uniquement)' : ''}`)
         console.log('   └─ Endpoint: /api/ProductTraceability')
         
-        const payload = {
-          productUid: String(product.productUid || ''),
-          productSerialNumber: String(product.serialLabel || ''),
-          productStatusUid: String(statusUid || ''),
-          creationDate: new Date().toISOString(),
-          manufacturingOrderUid: String(product.ofUid || ''),
-          userUid: operator ? String(operator.userUid) : '',
-          cycleTime: (() => {
-            if (!testStartTsRef.current) return ''
-            const ms = Date.now() - testStartTsRef.current
-            return String(ms)
-          })(),
-          operationNumber: currentOperationNumber != null ? String(currentOperationNumber) : '',
-          machineUid: String(machineUid),
-        }
+        const payload = buildProductTraceabilityPayload({
+          product,
+          statusUid,
+          operator,
+          testStartTs: testStartTsRef.current,
+          currentOperationNumber,
+          machineUid,
+        })
         
         console.log('   └─ Payload:')
         console.log('      • productUid:', payload.productUid)
