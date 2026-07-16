@@ -2,14 +2,13 @@ import { useState, useMemo, useEffect, useRef } from 'react'
 import TestStep from './TestStep.jsx'
 import ImpactMessage from './ImpactMessage.jsx'
 import { callGsm, hangupGsm } from '../services/gsmService.js'
-import { createProductTraceability } from '../services/productTraceabilityService.js'
 import { useOperator } from '../context/useOperator.js'
 import { loadProductSimCards } from '../services/simCardLoadingService.js'
 import { loadProductTestSequence } from '../services/testSequenceLoadingService.js'
 import { printConfiguredLabelsForProduct } from '../services/labelPrintingService.js'
 import { parseScannedProductLabel } from '../services/scannedLabelParser.js'
 import { validateScannedProduct } from '../services/scannedProductValidationService.js'
-import { buildProductTraceabilityPayload } from '../services/traceabilityPayloadBuilder.js'
+import { submitProductTraceabilities } from '../services/productTraceabilitySubmissionService.js'
 import { submitKitTraceabilityIfNeeded } from '../services/kitTraceabilitySubmissionService.js'
 import { getMachineUid, getProductStatusUids } from '../config/runtimeConfig.js'
 
@@ -185,52 +184,14 @@ function Product({ productLabel, simSelectId, currentOperationNumber, productUid
       console.log('📦 Nombre de produits:', productsToTrace.length)
       console.log('')
       
-      // Créer une traçabilité uniquement pour la mère (ou le seul produit scanné)
-      // En cas de couple Mère/Fille, on ne trace PAS la fille
-      const isMotherDaughterPair = productsToTrace.length === 2 && productsToTrace[0].productUid !== productsToTrace[1].productUid
-      const productsToTraceFiltered = isMotherDaughterPair ? [productsToTrace[0]] : productsToTrace
-
-      for (let i = 0; i < productsToTraceFiltered.length; i++) {
-        const product = productsToTraceFiltered[i]
-        
-        console.log(`🌐 API CALL - createProductTraceability [Produit ${i + 1}/${productsToTraceFiltered.length}]${isMotherDaughterPair ? ' (Mère uniquement)' : ''}`)
-        console.log('   └─ Endpoint: /api/ProductTraceability')
-        
-        const payload = buildProductTraceabilityPayload({
-          product,
-          statusUid,
-          operator,
-          testStartTs: testStartTsRef.current,
-          currentOperationNumber,
-          machineUid,
-        })
-        
-        console.log('   └─ Payload:')
-        console.log('      • productUid:', payload.productUid)
-        console.log('      • productSerialNumber:', payload.productSerialNumber)
-        console.log('      • productStatusUid:', payload.productStatusUid)
-        console.log('      • manufacturingOrderUid:', payload.manufacturingOrderUid)
-        console.log('      • userUid:', payload.userUid)
-        console.log('      • cycleTime:', payload.cycleTime, 'ms')
-        console.log('      • operationNumber:', payload.operationNumber)
-        console.log('      • machineUid:', payload.machineUid)
-        console.log('      • creationDate:', payload.creationDate)
-        
-        if (payload.productUid && payload.productSerialNumber && payload.manufacturingOrderUid) {
-          const result = await createProductTraceability(payload)
-          console.log('📥 RÉPONSE:')
-          console.log('   └─ Status HTTP:', result?.status || 'N/A')
-          console.log('   └─ Success:', result?.ok || false)
-          console.log('   └─ Data:', result?.data || null)
-          console.log('')
-        } else {
-          console.warn('⚠️  Données incomplètes, traçabilité non créée')
-          console.log('   └─ productUid:', payload.productUid || '(manquant)')
-          console.log('   └─ productSerialNumber:', payload.productSerialNumber || '(manquant)')
-          console.log('   └─ manufacturingOrderUid:', payload.manufacturingOrderUid || '(manquant)')
-          console.log('')
-        }
-      }
+      await submitProductTraceabilities({
+        productsToTrace,
+        statusUid,
+        operator,
+        testStartTs: testStartTsRef.current,
+        currentOperationNumber,
+        machineUid,
+      })
       
       console.log('✅ Traçabilités enregistrées')
       console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
