@@ -1,14 +1,15 @@
-import { useState, useMemo, useEffect, useRef } from 'react'
+import { useMemo, useEffect, useState } from 'react'
 import TestStep from './TestStep.jsx'
 import ImpactMessage from './ImpactMessage.jsx'
-import { callGsm, hangupGsm } from '../services/gsmService.js'
 import { useOperator } from '../context/useOperator.js'
+import { useProductTestFlow } from '../hooks/useProductTestFlow.js'
 import { loadProductSimCards } from '../services/simCardLoadingService.js'
 import { loadProductTestSequence } from '../services/testSequenceLoadingService.js'
-import { printConfiguredLabelsForProduct } from '../services/labelPrintingService.js'
 import { handleProductScan } from '../services/productScanHandlerService.js'
 import { submitProductTraceabilities } from '../services/productTraceabilitySubmissionService.js'
 import { submitKitTraceabilityIfNeeded } from '../services/kitTraceabilitySubmissionService.js'
+import { buildRetestScannedProduct } from '../services/retestConfirmationService.js'
+import { handleProductWorkflowStep } from '../services/productStepWorkflowService.js'
 import { getMachineUid, getProductStatusUids } from '../config/runtimeConfig.js'
 
 function Product({ productLabel, simSelectId, currentOperationNumber, productUid, manufacturingOrderUid, assignedSimCardNumber }) {
@@ -16,30 +17,23 @@ function Product({ productLabel, simSelectId, currentOperationNumber, productUid
   
   const STATUS_UID = useMemo(() => getProductStatusUids(), [])
 
-  // Test sequence state
-  const [currentStepIndex, setCurrentStepIndex] = useState(0)
-  const [testData, setTestData] = useState({
-    scannedProducts: [], // Array of { labelScan, serialLabel, ofUid, productUid }
-    selectedSim: '',
-    simOptions: [],
-    simList: [],
-    isReady: null,
-    phonieResult: null,
-    batteryResult: null,
-    switchOffResult: null,
-    checkIntercoResult: null,
-    testStartTs: null,
-    gsmCallStatus: 'idle', // idle | calling | connected | error
-  })
-  
-  const [error, setError] = useState('')
-  const [, setLoading] = useState(false)
-  const [retestConfirmation, setRetestConfirmation] = useState(null) // { productUid, serialLabel, ofUid } when confirmation needed
+  const {
+    currentStepIndex,
+    setCurrentStepIndex,
+    testData,
+    setTestData,
+    error,
+    setError,
+    setLoading,
+    retestConfirmation,
+    setRetestConfirmation,
+    scannedProductsRef,
+    testStartTsRef,
+    resetAll,
+  } = useProductTestFlow()
+
   const [testSequence, setTestSequence] = useState(null)
   const [testSequenceFileName, setTestSequenceFileName] = useState('')
-  const didSubmitRef = useRef(false)
-  const scannedProductsRef = useRef([]) // Ref synchrone pour les produits scannés
-  const testStartTsRef = useRef(null) // Ref synchrone pour le timestamp de début
 
   // Default first step when no test sequence is loaded yet
   const defaultFirstStep = useMemo(() => ({
@@ -105,7 +99,7 @@ function Product({ productLabel, simSelectId, currentOperationNumber, productUid
       }
     })()
     return () => { cancelled = true }
-  }, [assignedSimCardNumber, productLabel])
+  }, [assignedSimCardNumber, productLabel, setError, setTestData])
 
   // Restore last selected SIM from localStorage
   useEffect(() => {
@@ -118,7 +112,7 @@ function Product({ productLabel, simSelectId, currentOperationNumber, productUid
       void error
       // ignore
     }
-  }, [simSelectId])
+  }, [simSelectId, setTestData])
 
   // Load test sequence when productUid is provided (from Manufacturing Order scan)
   useEffect(() => {
@@ -136,7 +130,7 @@ function Product({ productLabel, simSelectId, currentOperationNumber, productUid
       setTestSequenceFileName(result.fileName)
     })()
     return () => { cancelled = true }
-  }, [productUid, manufacturingOrderUid])
+  }, [productUid, manufacturingOrderUid, setError])
 
   const selectedSimPhone = useMemo(() => {
     const { selectedSim, simList } = testData
@@ -144,29 +138,6 @@ function Product({ productLabel, simSelectId, currentOperationNumber, productUid
     const sim = simList.find((s) => String(s?.simCardUid || '') === String(selectedSim))
     return String(sim?.phoneNumber || '')
   }, [testData])
-
-  const resetAll = () => {
-    didSubmitRef.current = false
-    scannedProductsRef.current = []
-    testStartTsRef.current = null
-    setCurrentStepIndex(0)
-    setTestData(prev => ({
-      scannedProducts: [],
-      selectedSim: prev.selectedSim,
-      simOptions: prev.simOptions,
-      simList: prev.simList,
-      isReady: null,
-      phonieResult: null,
-      batteryResult: null,
-      switchOffResult: null,
-      checkIntercoResult: null,
-      testStartTs: null,
-      gsmCallStatus: 'idle',
-    }))
-    setError('')
-    setLoading(false)
-    setRetestConfirmation(null)
-  }
 
   const submitTraceability = async (status) => {
     try {
@@ -214,12 +185,7 @@ function Product({ productLabel, simSelectId, currentOperationNumber, productUid
     
     // Ajouter le produit confirmé à la liste des produits scannés
     if (retestConfirmation) {
-      const scannedProduct = {
-        labelScan: '', // On ne l'a pas stocké dans retestConfirmation
-        serialLabel: retestConfirmation.serialLabel,
-        ofUid: retestConfirmation.ofUid,
-        productUid: retestConfirmation.productUid
-      }
+      const scannedProduct = buildRetestScannedProduct(retestConfirmation)
       
       // Ajouter à la ref
       scannedProductsRef.current = [...scannedProductsRef.current, scannedProduct]
@@ -297,150 +263,20 @@ function Product({ productLabel, simSelectId, currentOperationNumber, productUid
         return
       }
 
-      switch (stepId) {
-        case 'select-sim': {
-          setTestData(prev => ({ ...prev, selectedSim: value }))
-          try {
-            localStorage.setItem(`sim:last:${simSelectId}`, value)
-          } catch (error) {
-            void error
-          }
-          setCurrentStepIndex(prev => prev + 1)
-          break
-        }
-
-        case 'insert-sim': {
-          // Opérateur a inséré la SIM et mis le produit sous tension
-          // Passer à l'étape suivante
-          setCurrentStepIndex(prev => prev + 1)
-          break
-        }
-
-        case 'check-init': {
-          if (value === 'ko') {
-            setTestData(prev => ({ ...prev, isReady: false }))
-            await submitTraceability('KO')
-            // Aller directement à l'étape finale pour tester une autre carte
-            setCurrentStepIndex(steps.length - 1)
-            break
-          }
-
-          // Vérifier le numéro de téléphone avant de passer à l'étape suivante
-          const phone = selectedSimPhone
-          if (!phone) {
-            setTestData(prev => ({ ...prev, gsmCallStatus: 'error' }))
-            setError("Aucune carte SIM sélectionnée ou numéro de téléphone manquant. Vérifiez la configuration SIM.")
-            return
-          }
-
-          setTestData(prev => ({ ...prev, isReady: true, gsmCallStatus: 'calling' }))
-
-          // Initier l'appel GSM sans attendre la réponse (fire & forget)
-          // pour éviter le timeout selon le produit appelé
-          callGsm({ phoneNumber: phone, audioOk: true })
-            .then(({ ok }) => {
-              if (!ok) {
-                setTestData(prev => ({ ...prev, gsmCallStatus: 'error' }))
-              } else {
-                setTestData(prev => ({ ...prev, gsmCallStatus: 'connected' }))
-              }
-            })
-            .catch(() => {
-              setTestData(prev => ({ ...prev, gsmCallStatus: 'error' }))
-            })
-
-          // Passer immédiatement à l'étape suivante sans attendre la réponse API
-          setCurrentStepIndex(prev => prev + 1)
-          break
-        }
-
-        case 'test-phonie': {
-          // Hangup call
-          try {
-            await hangupGsm()
-            setTestData(prev => ({ ...prev, gsmCallStatus: 'idle' }))
-          } catch (error) {
-            void error
-          }
-
-          if (value === 'ko') {
-            setTestData(prev => ({ ...prev, phonieResult: 'ko' }))
-            await submitTraceability('KO')
-            // Aller directement à l'étape finale pour tester une autre carte
-            setCurrentStepIndex(steps.length - 1)
-            break
-          }
-
-          setTestData(prev => ({ ...prev, phonieResult: 'ok' }))
-          
-          // Si test-battery, switch-off ou check-interco existent, ne pas soumettre maintenant
-          const hasTestBattery = steps.some(step => step.id === 'test-battery')
-          const hasPostPhonieChoices = steps.some(step => step.id === 'switch-off' || step.id === 'check-interco')
-          if (!hasTestBattery && !hasPostPhonieChoices) {
-            await submitTraceability('OK')
-          }
-          
-          setCurrentStepIndex(prev => prev + 1)
-          break
-        }
-
-        case 'test-battery': {
-          if (value === 'ko') {
-            setTestData(prev => ({ ...prev, batteryResult: 'ko' }))
-            await submitTraceability('KO')
-            // Aller directement à l'étape finale pour tester une autre carte
-            setCurrentStepIndex(steps.length - 1)
-            break
-          }
-
-          setTestData(prev => ({ ...prev, batteryResult: 'ok' }))
-          await submitTraceability('OK')
-
-          await printConfiguredLabelsForProduct(productUid, scannedProductsRef.current[0])
-
-          setCurrentStepIndex(prev => prev + 1)
-          break
-        }
-
-        case 'switch-off': {
-          if (value === 'ko') {
-            setTestData(prev => ({ ...prev, switchOffResult: 'ko' }))
-            await submitTraceability('KO')
-            setCurrentStepIndex(steps.length - 1)
-            break
-          }
-          setTestData(prev => ({ ...prev, switchOffResult: 'ok' }))
-          setCurrentStepIndex(prev => prev + 1)
-          break
-        }
-
-        case 'check-interco': {
-          if (value === 'ko') {
-            setTestData(prev => ({ ...prev, checkIntercoResult: 'ko' }))
-            await submitTraceability('KO')
-            setCurrentStepIndex(steps.length - 1)
-            break
-          }
-          setTestData(prev => ({ ...prev, checkIntercoResult: 'ok' }))
-          // Les deux tests visuels sont OK → soumettre OK si pas de test-battery après
-          const hasTestBatteryAfter = steps.some(step => step.id === 'test-battery')
-          if (!hasTestBatteryAfter) {
-            await submitTraceability('OK')
-
-            await printConfiguredLabelsForProduct(productUid, scannedProductsRef.current[0])
-          }
-          setCurrentStepIndex(prev => prev + 1)
-          break
-        }
-
-        case 'test-complete': {
-          resetAll()
-          break
-        }
-
-        default:
-          setCurrentStepIndex(prev => prev + 1)
-      }
+      await handleProductWorkflowStep({
+        stepId,
+        value,
+        steps,
+        selectedSimPhone,
+        simSelectId,
+        productUid,
+        scannedProduct: scannedProductsRef.current[0],
+        setTestData,
+        setError,
+        setCurrentStepIndex,
+        submitTraceability,
+        resetAll,
+      })
     } catch (e) {
       setError(String(e?.message || e))
     } finally {
