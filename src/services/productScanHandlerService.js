@@ -1,3 +1,4 @@
+import { logger } from './loggerService.js'
 import { parseScannedProductLabel } from './scannedLabelParser.js'
 import { validateScannedProduct } from './scannedProductValidationService.js'
 
@@ -14,13 +15,13 @@ export async function handleProductScan({
 } = {}) {
   const parsedLabel = parseScannedProductLabel(value)
 
-  console.log(LINE)
-  console.log('📦 SCAN PRODUIT')
-  console.log(LINE)
-  console.log('🏷️  Étiquette scannée:', parsedLabel.raw)
-  console.log('🔢 Numéro de série:', parsedLabel.serialNumber)
-  console.log('📋 OF:', parsedLabel.manufacturingOrderUid)
-  console.log('')
+  logger.info(LINE)
+  logger.info('📦 SCAN PRODUIT')
+  logger.info(LINE)
+  logger.info('🏷️  Étiquette scannée:', parsedLabel.raw)
+  logger.info('🔢 Numéro de série:', parsedLabel.serialNumber)
+  logger.info('📋 OF:', parsedLabel.manufacturingOrderUid)
+  logger.info('')
 
   return validateScannedProduct({
     parsedLabel,

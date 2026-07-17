@@ -1,4 +1,5 @@
-// Lightweight HTTP client with timeout, console logging and JSON convenience
+// Lightweight HTTP client with timeout, controlled logging and JSON convenience
+import { isHttpLoggingEnabled, logger } from './loggerService.js'
 
 let __reqCounter = 0
 
@@ -31,7 +32,9 @@ export async function request(url, { method = 'GET', timeout = 4000, headers = {
   try {
     const bodyPreview = truncate(safeToString(rest?.body))
      
-    console.log(`[HTTP ${reqId}] ➜ ${method} ${url} @ ${ts()}`, { headers, timeout, body: bodyPreview })
+    if (isHttpLoggingEnabled()) {
+      logger.debug(`[HTTP ${reqId}] ➜ ${method} ${url} @ ${ts()}`, { headers, timeout, body: bodyPreview })
+    }
   } catch (error) {
     void error
   }
@@ -50,16 +53,18 @@ export async function request(url, { method = 'GET', timeout = 4000, headers = {
       const text = await clone.text()
       const preview = truncate(text)
        
-      console.log(`[HTTP ${reqId}] ⇦ ${res.status} ${res.ok ? 'OK' : 'ERR'} @ ${ts()}`, { body: preview })
+      if (isHttpLoggingEnabled()) {
+        logger.debug(`[HTTP ${reqId}] ⇦ ${res.status} ${res.ok ? 'OK' : 'ERR'} @ ${ts()}`, { body: preview })
+      }
     } catch (e) {
        
-      console.warn(`[HTTP ${reqId}] ⇦ (response logging failed)`, String(e?.message || e))
+      logger.warn(`[HTTP ${reqId}] ⇦ (response logging failed)`, String(e?.message || e))
     }
 
     return res
   } catch (err) {
      
-    console.error(`[HTTP ${reqId}] ✖ Error @ ${ts()}`, String(err?.message || err))
+    logger.error(`[HTTP ${reqId}] ✖ Error @ ${ts()}`, String(err?.message || err))
     throw err
   } finally {
     clearTimeout(toId)

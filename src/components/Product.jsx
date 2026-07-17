@@ -11,6 +11,7 @@ import { submitKitTraceabilityIfNeeded } from '../services/kitTraceabilitySubmis
 import { buildRetestScannedProduct } from '../services/retestConfirmationService.js'
 import { handleProductWorkflowStep } from '../services/productStepWorkflowService.js'
 import { getMachineUid, getProductStatusUids } from '../config/runtimeConfig.js'
+import { logger } from '../services/loggerService.js'
 
 function Product({ productLabel, simSelectId, currentOperationNumber, productUid, manufacturingOrderUid, assignedSimCardNumber }) {
   const { operator } = useOperator()
@@ -91,7 +92,7 @@ function Product({ productLabel, simSelectId, currentOperationNumber, productUid
           selectedSim: result.selectedSim || prev.selectedSim,
         }))
       } catch (e) {
-        console.error(`❌ [${productLabel}] Exception lors du chargement des SIM :`, e)
+        logger.error(`❌ [${productLabel}] Exception lors du chargement des SIM :`, e)
         setError("Impossible de récupérer la liste des cartes SIM.")
         if (!cancelled) {
           setTestData(prev => ({ ...prev, simOptions: [], simList: [] }))
@@ -147,12 +148,12 @@ function Product({ productLabel, simSelectId, currentOperationNumber, productUid
       // Utiliser la ref au lieu du state pour avoir les données synchrones
       const productsToTrace = scannedProductsRef.current
       
-      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-      console.log('💾 ENREGISTREMENT TRAÇABILITÉ')
-      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-      console.log('📊 Statut:', status)
-      console.log('📦 Nombre de produits:', productsToTrace.length)
-      console.log('')
+      logger.info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+      logger.info('💾 ENREGISTREMENT TRAÇABILITÉ')
+      logger.info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+      logger.info('📊 Statut:', status)
+      logger.info('📦 Nombre de produits:', productsToTrace.length)
+      logger.info('')
       
       await submitProductTraceabilities({
         productsToTrace,
@@ -163,15 +164,15 @@ function Product({ productLabel, simSelectId, currentOperationNumber, productUid
         machineUid,
       })
       
-      console.log('✅ Traçabilités enregistrées')
-      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-      console.log('')
+      logger.info('✅ Traçabilités enregistrées')
+      logger.info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+      logger.info('')
       
       await submitKitTraceabilityIfNeeded({ status, productsToTrace, operator })
     } catch (err) {
-      console.error('❌ ERREUR lors de l\'enregistrement de la traçabilité')
-      console.error('   └─', err)
-      console.log('')
+      logger.error('❌ ERREUR lors de l\'enregistrement de la traçabilité')
+      logger.error('   └─', err)
+      logger.info('')
       // Ignore errors to avoid blocking UI
     }
   }
@@ -196,8 +197,8 @@ function Product({ productLabel, simSelectId, currentOperationNumber, productUid
         scannedProducts: [...prev.scannedProducts, scannedProduct]
       }))
       
-      console.log('✅ Produit ajouté après confirmation de retest')
-      console.log('📊 Total produits scannés:', scannedProductsRef.current.length)
+      logger.info('✅ Produit ajouté après confirmation de retest')
+      logger.info('📊 Total produits scannés:', scannedProductsRef.current.length)
     }
     
     setRetestConfirmation(null)
@@ -253,10 +254,10 @@ function Product({ productLabel, simSelectId, currentOperationNumber, productUid
           scannedProducts: [...prev.scannedProducts, scannedProduct]
         }))
 
-        console.log('✅ Produit ajouté à la liste des produits scannés')
-        console.log('📊 Total produits scannés:', scannedProductsRef.current.length)
-        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-        console.log('')
+        logger.info('✅ Produit ajouté à la liste des produits scannés')
+        logger.info('📊 Total produits scannés:', scannedProductsRef.current.length)
+        logger.info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+        logger.info('')
 
         // Move to next step
         setCurrentStepIndex(prev => prev + 1)

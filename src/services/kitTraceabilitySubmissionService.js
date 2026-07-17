@@ -1,3 +1,4 @@
+import { logger } from './loggerService.js'
 import { getManufacturingOrderByUid } from './manufacturingOrderService.js'
 import { createKitTraceability } from './kitTraceabilityService.js'
 
@@ -8,26 +9,26 @@ const isMotherDaughterPair = (productsToTrace) =>
 
 export async function submitKitTraceabilityIfNeeded({ status, productsToTrace = [], operator } = {}) {
   if (status === 'OK' && isMotherDaughterPair(productsToTrace)) {
-    console.log(LINE)
-    console.log('👩‍👧 DÉTECTION COUPLE MERE/FILLE')
-    console.log(LINE)
-    console.log('🔍 Produit 1 (Mère):', productsToTrace[0].productUid, '- SN:', productsToTrace[0].serialLabel)
-    console.log('🔍 Produit 2 (Fille):', productsToTrace[1].productUid, '- SN:', productsToTrace[1].serialLabel)
-    console.log('')
+    logger.info(LINE)
+    logger.info('👩‍👧 DÉTECTION COUPLE MERE/FILLE')
+    logger.info(LINE)
+    logger.info('🔍 Produit 1 (Mère):', productsToTrace[0].productUid, '- SN:', productsToTrace[0].serialLabel)
+    logger.info('🔍 Produit 2 (Fille):', productsToTrace[1].productUid, '- SN:', productsToTrace[1].serialLabel)
+    logger.info('')
 
     try {
       const motherProduct = productsToTrace[0]
       const daughterProduct = productsToTrace[1]
 
-      console.log('🌐 API CALL - getManufacturingOrderByUid (pour clientOrder)')
-      console.log('   └─ manufacturingOrderUid:', motherProduct.ofUid)
+      logger.info('🌐 API CALL - getManufacturingOrderByUid (pour clientOrder)')
+      logger.info('   └─ manufacturingOrderUid:', motherProduct.ofUid)
 
       const { ok: moOk, data: moData } = await getManufacturingOrderByUid(motherProduct.ofUid)
 
-      console.log('📥 RÉPONSE:')
-      console.log('   └─ Success:', moOk)
-      console.log('   └─ Data:', moData)
-      console.log('')
+      logger.info('📥 RÉPONSE:')
+      logger.info('   └─ Success:', moOk)
+      logger.info('   └─ Data:', moData)
+      logger.info('')
 
       const clientOrder = moOk && moData ? String(moData.externalOrderNumber || 'UNKNOWN_ORDER') : 'UNKNOWN_ORDER'
 
@@ -43,50 +44,50 @@ export async function submitKitTraceabilityIfNeeded({ status, productsToTrace = 
         userUid: operator ? String(operator.userUid) : '',
       }
 
-      console.log('🌐 API CALL - createKitTraceability')
-      console.log('   └─ Endpoint: /api/KitTraceability/create')
-      console.log('   └─ Payload:')
-      console.log('      • clientOrder:', kitPayload.clientOrder)
-      console.log('      • manufacturingOrderUid:', kitPayload.manufacturingOrderUid)
-      console.log('      • product (Mère):', kitPayload.product)
-      console.log('      • horizonComponentCode (Fille):', kitPayload.horizonComponentCode)
-      console.log('      • serialNumber:', kitPayload.serialNumber)
-      console.log('      • scanFrame:', kitPayload.scanFrame)
-      console.log('      • date:', kitPayload.date)
-      console.log('      • userUid:', kitPayload.userUid)
-      console.log('')
+      logger.info('🌐 API CALL - createKitTraceability')
+      logger.info('   └─ Endpoint: /api/KitTraceability/create')
+      logger.info('   └─ Payload:')
+      logger.info('      • clientOrder:', kitPayload.clientOrder)
+      logger.info('      • manufacturingOrderUid:', kitPayload.manufacturingOrderUid)
+      logger.info('      • product (Mère):', kitPayload.product)
+      logger.info('      • horizonComponentCode (Fille):', kitPayload.horizonComponentCode)
+      logger.info('      • serialNumber:', kitPayload.serialNumber)
+      logger.info('      • scanFrame:', kitPayload.scanFrame)
+      logger.info('      • date:', kitPayload.date)
+      logger.info('      • userUid:', kitPayload.userUid)
+      logger.info('')
 
       const kitResult = await createKitTraceability(kitPayload)
 
-      console.log('📥 RÉPONSE:')
-      console.log('   └─ Status HTTP:', kitResult?.status || 'N/A')
-      console.log('   └─ Success:', kitResult?.ok || false)
-      console.log('   └─ Data:', kitResult?.data || null)
-      console.log('')
+      logger.info('📥 RÉPONSE:')
+      logger.info('   └─ Status HTTP:', kitResult?.status || 'N/A')
+      logger.info('   └─ Success:', kitResult?.ok || false)
+      logger.info('   └─ Data:', kitResult?.data || null)
+      logger.info('')
 
       if (kitResult.ok) {
-        console.log('✅ Association Mère/Fille enregistrée avec succès')
+        logger.info('✅ Association Mère/Fille enregistrée avec succès')
       } else {
-        console.warn('⚠️  Échec enregistrement association Mère/Fille - Status:', kitResult.status)
+        logger.warn('⚠️  Échec enregistrement association Mère/Fille - Status:', kitResult.status)
       }
     } catch (kitErr) {
-      console.error('❌ ERREUR lors de l\'enregistrement de l\'association Mère/Fille')
-      console.error('   └─', kitErr)
+      logger.error('❌ ERREUR lors de l\'enregistrement de l\'association Mère/Fille')
+      logger.error('   └─', kitErr)
     }
 
-    console.log(LINE)
-    console.log('')
+    logger.info(LINE)
+    logger.info('')
     return
   }
 
   if (isMotherDaughterPair(productsToTrace)) {
-    console.log('⚠️  Couple Mère/Fille détecté mais carte MAUVAISE (KO) - KitTraceability NON enregistré')
-    console.log('')
+    logger.info('⚠️  Couple Mère/Fille détecté mais carte MAUVAISE (KO) - KitTraceability NON enregistré')
+    logger.info('')
   } else if (productsToTrace.length === 1) {
-    console.log('ℹ️  Produit simple détecté (pas de couple Mère/Fille)')
-    console.log('')
+    logger.info('ℹ️  Produit simple détecté (pas de couple Mère/Fille)')
+    logger.info('')
   } else if (productsToTrace.length > 2) {
-    console.log('⚠️  Plus de 2 produits scannés - Pas d\'association Mère/Fille')
-    console.log('')
+    logger.info('⚠️  Plus de 2 produits scannés - Pas d\'association Mère/Fille')
+    logger.info('')
   }
 }

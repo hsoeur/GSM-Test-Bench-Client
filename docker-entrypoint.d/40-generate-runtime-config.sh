@@ -38,6 +38,8 @@ export MACHINE_UID="${MACHINE_UID:-MO03A}"
 export API_STATUS_POLL_INTERVAL_MS="${API_STATUS_POLL_INTERVAL_MS:-10000}"
 export API_STATUS_TIMEOUT_MS="${API_STATUS_TIMEOUT_MS:-4000}"
 export API_STATUS_DEBUG="${API_STATUS_DEBUG:-false}"
+export LOG_LEVEL="${LOG_LEVEL:-warn}"
+export HTTP_LOGGING="${HTTP_LOGGING:-false}"
 
 envsubst < "$TEMPLATE_FILE" > "$CONFIG_FILE"
 echo "Runtime config generated from container environment"
