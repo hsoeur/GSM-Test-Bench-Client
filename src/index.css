@@ -48,3 +48,41 @@ body {
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
 }
+
+.config-error-screen {
+	min-height: 100%;
+	display: grid;
+	place-items: center;
+	padding: 24px;
+	background: var(--bg);
+}
+
+.config-error-panel {
+	width: min(720px, 100%);
+	background: var(--surface);
+	border: 1px solid var(--error-border);
+	border-radius: 8px;
+	padding: 24px;
+	color: var(--text);
+	box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12);
+}
+
+.config-error-panel h1 {
+	margin: 0 0 12px;
+	color: var(--error-ink);
+	font-size: 1.4rem;
+}
+
+.config-error-panel p {
+	margin: 0 0 16px;
+	color: var(--gray-600);
+}
+
+.config-error-panel ul {
+	margin: 0;
+	padding-left: 20px;
+}
+
+.config-error-panel li {
+	margin: 8px 0;
+}

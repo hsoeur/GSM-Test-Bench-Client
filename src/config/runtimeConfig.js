@@ -1,3 +1,5 @@
+import { assertValidRuntimeConfig, RuntimeConfigValidationError } from './runtimeConfigValidator.js'
+
 const DEFAULT_RUNTIME_CONFIG = {
   apiBases: {
     TEST_GSM: '/gsm-api',
@@ -63,16 +65,25 @@ export async function loadRuntimeConfig() {
     const response = await fetch(url, { cache: 'no-store' })
     if (!response.ok) throw new Error(`HTTP ${response.status}`)
     const loadedConfig = await response.json()
-    runtimeConfig = mergeConfig(DEFAULT_RUNTIME_CONFIG, loadedConfig)
+    const mergedConfig = mergeConfig(DEFAULT_RUNTIME_CONFIG, loadedConfig)
+    assertValidRuntimeConfig(mergedConfig)
+    runtimeConfig = mergedConfig
   } catch (error) {
-    runtimeConfig = DEFAULT_RUNTIME_CONFIG
-    console.warn('[runtime-config] Fallback to default config:', error?.message || error)
+    runtimeConfig = null
+    throw error instanceof RuntimeConfigValidationError
+      ? error
+      : new RuntimeConfigValidationError([`Impossible de charger /config/runtime-config.json (${error?.message || error}).`])
   }
-  window.__RUNTIME_CONFIG__ = runtimeConfig
+  if (typeof window !== 'undefined') {
+    window.__RUNTIME_CONFIG__ = runtimeConfig
+  }
   return runtimeConfig
 }
 
 export function getRuntimeConfig() {
+  if (!runtimeConfig) {
+    throw new RuntimeConfigValidationError(['La configuration runtime n’est pas chargée.'])
+  }
   return runtimeConfig
 }
 
