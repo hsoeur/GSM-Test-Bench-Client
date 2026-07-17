@@ -1,20 +1,21 @@
+import { logger } from './loggerService.js'
 import { getTestSequenceForProduct } from '../config/productTestSequenceMapping.js'
 
 const LINE = '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'
 
 export async function loadProductTestSequence({ productUid, manufacturingOrderUid } = {}) {
-  console.log('')
-  console.log(LINE)
-  console.log('📋 CHARGEMENT DE LA SÉQUENCE DE TEST (depuis OF)')
-  console.log(LINE)
-  console.log('🔍 ProductUid (OF):', productUid)
-  console.log('🏷️  Manufacturing Order:', manufacturingOrderUid)
+  logger.info('')
+  logger.info(LINE)
+  logger.info('📋 CHARGEMENT DE LA SÉQUENCE DE TEST (depuis OF)')
+  logger.info(LINE)
+  logger.info('🔍 ProductUid (OF):', productUid)
+  logger.info('🏷️  Manufacturing Order:', manufacturingOrderUid)
 
   const fileName = getTestSequenceForProduct(productUid)
   const sequenceUrl = `${window.location.origin}/config/${fileName}`
 
-  console.log('📄 Fichier sélectionné:', fileName)
-  console.log('🌐 URL complète:', sequenceUrl)
+  logger.info('📄 Fichier sélectionné:', fileName)
+  logger.info('🌐 URL complète:', sequenceUrl)
 
   try {
     const cacheBuster = `?t=${Date.now()}`
@@ -25,24 +26,24 @@ export async function loadProductTestSequence({ productUid, manufacturingOrderUi
 
     const sequence = await response.json()
 
-    console.log('✅ Séquence chargée avec succès!')
-    console.log('📊 Nombre d\'étapes:', sequence?.testSequence?.length || 0)
-    console.log('📋 Liste des étapes:')
+    logger.info('✅ Séquence chargée avec succès!')
+    logger.info('📊 Nombre d\'étapes:', sequence?.testSequence?.length || 0)
+    logger.info('📋 Liste des étapes:')
     sequence?.testSequence?.forEach((step, i) => {
-      console.log(`   ${i + 1}. [${step.id}] ${step.instruction}`)
-      if (step.image) console.log(`      📷 Image: ${step.image}`)
+      logger.info(`   ${i + 1}. [${step.id}] ${step.instruction}`)
+      if (step.image) logger.info(`      📷 Image: ${step.image}`)
     })
-    console.log('📝 Contenu complet:', JSON.stringify(sequence, null, 2))
-    console.log(LINE)
-    console.log('')
+    logger.info('📝 Contenu complet:', JSON.stringify(sequence, null, 2))
+    logger.info(LINE)
+    logger.info('')
 
     return { ok: true, sequence, fileName }
   } catch (error) {
-    console.error('❌ ERREUR lors du chargement de la séquence')
-    console.error('   └─ Fichier:', fileName)
-    console.error('   └─ Erreur:', error)
-    console.log(LINE)
-    console.log('')
+    logger.error('❌ ERREUR lors du chargement de la séquence')
+    logger.error('   └─ Fichier:', fileName)
+    logger.error('   └─ Erreur:', error)
+    logger.info(LINE)
+    logger.info('')
 
     return {
       ok: false,

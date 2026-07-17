@@ -1,3 +1,4 @@
+import { logger } from './loggerService.js'
 import { createProductTraceability } from './productTraceabilityService.js'
 import { buildProductTraceabilityPayload } from './traceabilityPayloadBuilder.js'
 
@@ -18,8 +19,8 @@ export async function submitProductTraceabilities({
   for (let i = 0; i < productsToTraceFiltered.length; i++) {
     const product = productsToTraceFiltered[i]
 
-    console.log(`🌐 API CALL - createProductTraceability [Produit ${i + 1}/${productsToTraceFiltered.length}]${motherDaughterPair ? ' (Mère uniquement)' : ''}`)
-    console.log('   └─ Endpoint: /api/ProductTraceability')
+    logger.info(`🌐 API CALL - createProductTraceability [Produit ${i + 1}/${productsToTraceFiltered.length}]${motherDaughterPair ? ' (Mère uniquement)' : ''}`)
+    logger.info('   └─ Endpoint: /api/ProductTraceability')
 
     const payload = buildProductTraceabilityPayload({
       product,
@@ -30,30 +31,30 @@ export async function submitProductTraceabilities({
       machineUid,
     })
 
-    console.log('   └─ Payload:')
-    console.log('      • productUid:', payload.productUid)
-    console.log('      • productSerialNumber:', payload.productSerialNumber)
-    console.log('      • productStatusUid:', payload.productStatusUid)
-    console.log('      • manufacturingOrderUid:', payload.manufacturingOrderUid)
-    console.log('      • userUid:', payload.userUid)
-    console.log('      • cycleTime:', payload.cycleTime, 'ms')
-    console.log('      • operationNumber:', payload.operationNumber)
-    console.log('      • machineUid:', payload.machineUid)
-    console.log('      • creationDate:', payload.creationDate)
+    logger.info('   └─ Payload:')
+    logger.info('      • productUid:', payload.productUid)
+    logger.info('      • productSerialNumber:', payload.productSerialNumber)
+    logger.info('      • productStatusUid:', payload.productStatusUid)
+    logger.info('      • manufacturingOrderUid:', payload.manufacturingOrderUid)
+    logger.info('      • userUid:', payload.userUid)
+    logger.info('      • cycleTime:', payload.cycleTime, 'ms')
+    logger.info('      • operationNumber:', payload.operationNumber)
+    logger.info('      • machineUid:', payload.machineUid)
+    logger.info('      • creationDate:', payload.creationDate)
 
     if (payload.productUid && payload.productSerialNumber && payload.manufacturingOrderUid) {
       const result = await createProductTraceability(payload)
-      console.log('📥 RÉPONSE:')
-      console.log('   └─ Status HTTP:', result?.status || 'N/A')
-      console.log('   └─ Success:', result?.ok || false)
-      console.log('   └─ Data:', result?.data || null)
-      console.log('')
+      logger.info('📥 RÉPONSE:')
+      logger.info('   └─ Status HTTP:', result?.status || 'N/A')
+      logger.info('   └─ Success:', result?.ok || false)
+      logger.info('   └─ Data:', result?.data || null)
+      logger.info('')
     } else {
-      console.warn('⚠️  Données incomplètes, traçabilité non créée')
-      console.log('   └─ productUid:', payload.productUid || '(manquant)')
-      console.log('   └─ productSerialNumber:', payload.productSerialNumber || '(manquant)')
-      console.log('   └─ manufacturingOrderUid:', payload.manufacturingOrderUid || '(manquant)')
-      console.log('')
+      logger.warn('⚠️  Données incomplètes, traçabilité non créée')
+      logger.info('   └─ productUid:', payload.productUid || '(manquant)')
+      logger.info('   └─ productSerialNumber:', payload.productSerialNumber || '(manquant)')
+      logger.info('   └─ manufacturingOrderUid:', payload.manufacturingOrderUid || '(manquant)')
+      logger.info('')
     }
   }
 }

@@ -15,6 +15,10 @@
     "timeoutMs": ${API_STATUS_TIMEOUT_MS},
     "debug": ${API_STATUS_DEBUG}
   },
+  "logging": {
+    "level": "${LOG_LEVEL}",
+    "http": ${HTTP_LOGGING}
+  },
   "testSequences": {
     "default": "testSequence-default.json",
     "byProduct": {

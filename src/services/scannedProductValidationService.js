@@ -1,3 +1,4 @@
+import { logger } from './loggerService.js'
 import { getManufacturingOrderByUid } from './manufacturingOrderService.js'
 import { getLatestProductTraceability } from './productTraceabilityService.js'
 
@@ -14,20 +15,20 @@ export async function validateScannedProduct({
   const serialPart = parsedLabel.serialNumber
   const ofPart = parsedLabel.manufacturingOrderUid
 
-  console.log('🌐 API CALL #1 - getManufacturingOrderByUid')
-  console.log('   └─ Endpoint: /api/ManufacturingOrder/by-manufacturing-order-uid')
-  console.log('   └─ Paramètre: manufacturingOrderUid =', ofPart)
+  logger.info('🌐 API CALL #1 - getManufacturingOrderByUid')
+  logger.info('   └─ Endpoint: /api/ManufacturingOrder/by-manufacturing-order-uid')
+  logger.info('   └─ Paramètre: manufacturingOrderUid =', ofPart)
 
   const { ok, data, status } = await getManufacturingOrderByUid(ofPart)
 
-  console.log('📥 RÉPONSE:')
-  console.log('   └─ Status HTTP:', status)
-  console.log('   └─ Success:', ok)
-  console.log('   └─ Data:', data)
-  console.log('')
+  logger.info('📥 RÉPONSE:')
+  logger.info('   └─ Status HTTP:', status)
+  logger.info('   └─ Success:', ok)
+  logger.info('   └─ Data:', data)
+  logger.info('')
 
   if (!ok || !data) {
-    console.error('❌ Échec récupération OF - Status:', status)
+    logger.error('❌ Échec récupération OF - Status:', status)
     return {
       type: 'error',
       errorMessage: `Échec récupération OF (${status})`,
@@ -35,10 +36,10 @@ export async function validateScannedProduct({
   }
 
   const scannedProductUid = String(data.productUid || '')
-  console.log('✅ ProductUid récupéré (étiquette):', scannedProductUid)
-  console.log('🏭 ProductUid OF initial (traça):', productUid)
-  console.log('📋 ManufacturingOrderUid OF initial (traça):', manufacturingOrderUid)
-  console.log('')
+  logger.info('✅ ProductUid récupéré (étiquette):', scannedProductUid)
+  logger.info('🏭 ProductUid OF initial (traça):', productUid)
+  logger.info('📋 ManufacturingOrderUid OF initial (traça):', manufacturingOrderUid)
+  logger.info('')
 
   const loadedSteps = testSequence?.testSequence || []
   const currentStepData = loadedSteps.find(step => step.id === stepId)
@@ -46,12 +47,12 @@ export async function validateScannedProduct({
   const productUidForCheck = currentStepData?.actionConfig?.checkProductUid || currentStepData?.actionConfig?.productUid || scannedProductUid
 
   if (previousOperationUid) {
-    console.log('🌐 API CALL #2 - getLatestProductTraceability (vérification N-1)')
-    console.log('   └─ Endpoint: /api/ProductTraceabilities/latest-by-product-serial-and-operation')
-    console.log('   └─ Paramètres:')
-    console.log('      • productUid:', productUidForCheck, currentStepData?.actionConfig?.productUid ? '(depuis config étape)' : '(depuis OF)')
-    console.log('      • serialNumber:', serialPart)
-    console.log('      • operationUid:', previousOperationUid)
+    logger.info('🌐 API CALL #2 - getLatestProductTraceability (vérification N-1)')
+    logger.info('   └─ Endpoint: /api/ProductTraceabilities/latest-by-product-serial-and-operation')
+    logger.info('   └─ Paramètres:')
+    logger.info('      • productUid:', productUidForCheck, currentStepData?.actionConfig?.productUid ? '(depuis config étape)' : '(depuis OF)')
+    logger.info('      • serialNumber:', serialPart)
+    logger.info('      • operationUid:', previousOperationUid)
 
     const { ok: ok2, status: st2, data: prevTrace } = await getLatestProductTraceability(
       productUidForCheck,
@@ -59,44 +60,44 @@ export async function validateScannedProduct({
       previousOperationUid,
     )
 
-    console.log('📥 RÉPONSE:')
-    console.log('   └─ Status HTTP:', st2)
-    console.log('   └─ Success:', ok2)
-    console.log('   └─ Data:', prevTrace)
-    console.log('')
+    logger.info('📥 RÉPONSE:')
+    logger.info('   └─ Status HTTP:', st2)
+    logger.info('   └─ Success:', ok2)
+    logger.info('   └─ Data:', prevTrace)
+    logger.info('')
 
     if (!ok2) {
-      console.error('❌ Échec vérification étape précédente')
+      logger.error('❌ Échec vérification étape précédente')
       if (st2 === 404) {
-        console.error('   └─ 404: Aucune traçabilité trouvée')
+        logger.error('   └─ 404: Aucune traçabilité trouvée')
         return { type: 'error', errorMessage: "Aucune traçabilité trouvée pour l'opération précédente." }
       }
-      console.error('   └─ Status HTTP:', st2)
+      logger.error('   └─ Status HTTP:', st2)
       return { type: 'error', errorMessage: `Échec vérification étape précédente (${st2})` }
     }
 
     if (!prevTrace || prevTrace.productStatusUid !== okStatusUid) {
-      console.error('❌ Produit NON VALIDE à l\'étape précédente')
-      console.log('   └─ Status trouvé:', prevTrace?.productStatusUid || '(aucun)')
+      logger.error('❌ Produit NON VALIDE à l\'étape précédente')
+      logger.info('   └─ Status trouvé:', prevTrace?.productStatusUid || '(aucun)')
       return { type: 'error', errorMessage: "Produit non valide à l'étape de fabrication précédente." }
     }
 
-    console.log('✅ Produit VALIDE à l\'étape précédente')
-    console.log('   └─ Status:', prevTrace.productStatusUid)
-    console.log('')
+    logger.info('✅ Produit VALIDE à l\'étape précédente')
+    logger.info('   └─ Status:', prevTrace.productStatusUid)
+    logger.info('')
   } else {
-    console.log('⚠️  Aucune vérification N-1 configurée (previousOperationUid manquant)')
-    console.log('')
+    logger.info('⚠️  Aucune vérification N-1 configurée (previousOperationUid manquant)')
+    logger.info('')
   }
 
   const productUidForTraceability = currentStepData?.actionConfig?.productUid || productUid
 
-  console.log('🌐 API CALL #3 - getLatestProductTraceability')
-  console.log('   └─ Endpoint: /api/ProductTraceability/latest')
-  console.log('   └─ Paramètres:')
-  console.log('      • productUid:', productUidForTraceability, currentStepData?.actionConfig?.productUid ? '(config étape)' : '(OF initial)')
-  console.log('      • serialNumber:', serialPart)
-  console.log('      • operationNumber:', currentOperationNumber)
+  logger.info('🌐 API CALL #3 - getLatestProductTraceability')
+  logger.info('   └─ Endpoint: /api/ProductTraceability/latest')
+  logger.info('   └─ Paramètres:')
+  logger.info('      • productUid:', productUidForTraceability, currentStepData?.actionConfig?.productUid ? '(config étape)' : '(OF initial)')
+  logger.info('      • serialNumber:', serialPart)
+  logger.info('      • operationNumber:', currentOperationNumber)
 
   const { ok: ok3, status: st3, data: latestTrace } = await getLatestProductTraceability(
     productUidForTraceability,
@@ -104,16 +105,16 @@ export async function validateScannedProduct({
     currentOperationNumber,
   )
 
-  console.log('📥 RÉPONSE:')
-  console.log('   └─ Status HTTP:', st3)
-  console.log('   └─ Success:', ok3)
-  console.log('   └─ Data:', latestTrace)
-  console.log('')
+  logger.info('📥 RÉPONSE:')
+  logger.info('   └─ Status HTTP:', st3)
+  logger.info('   └─ Success:', ok3)
+  logger.info('   └─ Data:', latestTrace)
+  logger.info('')
 
   if (ok3 && latestTrace && latestTrace.productStatusUid === okStatusUid) {
-    console.warn('⚠️  Produit déjà testé BON à cette opération')
-    console.log('   └─ Demande de confirmation de retest...')
-    console.log('')
+    logger.warn('⚠️  Produit déjà testé BON à cette opération')
+    logger.info('   └─ Demande de confirmation de retest...')
+    logger.info('')
     return {
       type: 'retest',
       retestConfirmation: {
@@ -124,8 +125,8 @@ export async function validateScannedProduct({
     }
   }
 
-  console.log('✅ Produit non encore testé (ou KO) à cette opération')
-  console.log('')
+  logger.info('✅ Produit non encore testé (ou KO) à cette opération')
+  logger.info('')
 
   return {
     type: 'valid',

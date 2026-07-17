@@ -1,3 +1,4 @@
+import { logger } from './loggerService.js'
 import { getPrintLabelConfig } from '../config/runtimeConfig.js'
 import { printBySerialNumber } from './printService.js'
 
@@ -16,22 +17,22 @@ export async function printConfiguredLabelsForProduct(sourceProductUid, scannedP
     serialNumber: scannedProduct.serialLabel,
   }
 
-  console.log(LINE)
-  console.log(`🖨️  IMPRESSION ÉTIQUETTES — ${sourceProductUid}`)
-  console.log(LINE)
+  logger.info(LINE)
+  logger.info(`🖨️  IMPRESSION ÉTIQUETTES — ${sourceProductUid}`)
+  logger.info(LINE)
 
   const portalUsage = `Gateway Montage Portail ASM ${usageSuffix}`
-  console.log(`🖨️  [1/2] Impression étiquette Portail ASM (${portalUsage})`)
+  logger.info(`🖨️  [1/2] Impression étiquette Portail ASM (${portalUsage})`)
   const portalResult = await printBySerialNumber({ ...printParams, uidUsage: portalUsage })
-  console.log('   └─ Status HTTP:', portalResult.status, '| OK:', portalResult.ok)
+  logger.info('   └─ Status HTTP:', portalResult.status, '| OK:', portalResult.ok)
 
   const designationUsage = `Gateway Montage Mac ${usageSuffix}`
-  console.log(`🖨️  [2/2] Impression étiquette Désignation (${designationUsage})`)
+  logger.info(`🖨️  [2/2] Impression étiquette Désignation (${designationUsage})`)
   const designationResult = await printBySerialNumber({ ...printParams, uidUsage: designationUsage })
-  console.log('   └─ Status HTTP:', designationResult.status, '| OK:', designationResult.ok)
+  logger.info('   └─ Status HTTP:', designationResult.status, '| OK:', designationResult.ok)
 
-  console.log(LINE)
-  console.log('')
+  logger.info(LINE)
+  logger.info('')
 
   return {
     skipped: false,

@@ -1,23 +1,24 @@
+import { logger } from './loggerService.js'
 import { getSimCards, toSimOption } from './simCardService.js'
 
 const LINE = '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'
 
 export async function loadProductSimCards({ productLabel, assignedSimCardNumber, timeoutMs = 5000 } = {}) {
-  console.log('')
-  console.log(LINE)
-  console.log(`📡 [${productLabel}] CHARGEMENT DES CARTES SIM`)
-  console.log(LINE)
+  logger.info('')
+  logger.info(LINE)
+  logger.info(`📡 [${productLabel}] CHARGEMENT DES CARTES SIM`)
+  logger.info(LINE)
 
   if (assignedSimCardNumber) {
-    console.log(`🔒 SIM assignée pour ce produit : ${assignedSimCardNumber}`)
+    logger.info(`🔒 SIM assignée pour ce produit : ${assignedSimCardNumber}`)
   } else {
-    console.log('🔓 Aucune SIM assignée — sélection libre')
+    logger.info('🔓 Aucune SIM assignée — sélection libre')
   }
 
   const { ok, status, data } = await getSimCards(timeoutMs)
   if (!ok) {
-    console.error(`❌ [${productLabel}] Échec récupération SIM — HTTP ${status || '—'}`)
-    console.log(LINE)
+    logger.error(`❌ [${productLabel}] Échec récupération SIM — HTTP ${status || '—'}`)
+    logger.info(LINE)
     return {
       ok: false,
       status,
@@ -34,19 +35,19 @@ export async function loadProductSimCards({ productLabel, assignedSimCardNumber,
     ? list.find(s => String(s.simCardNumber || '') === String(assignedSimCardNumber))
     : null
 
-  console.log(`✅ [${productLabel}] ${list.length} carte(s) SIM récupérée(s) :`)
-  list.forEach(s => console.log(`   • ${s.simCardUid} | ${s.simCardNumber} | ${s.provider || '—'} | ${s.phoneNumber || '—'}`))
+  logger.info(`✅ [${productLabel}] ${list.length} carte(s) SIM récupérée(s) :`)
+  list.forEach(s => logger.info(`   • ${s.simCardUid} | ${s.simCardNumber} | ${s.provider || '—'} | ${s.phoneNumber || '—'}`))
 
   if (assignedSimCardNumber) {
     if (autoSim) {
-      console.log(`🎯 [${productLabel}] SIM auto-sélectionnée : ${autoSim.simCardUid} (${autoSim.simCardNumber})`)
+      logger.info(`🎯 [${productLabel}] SIM auto-sélectionnée : ${autoSim.simCardUid} (${autoSim.simCardNumber})`)
     } else {
-      console.warn(`⚠️  [${productLabel}] SIM assignée ${assignedSimCardNumber} introuvable dans la liste !`)
+      logger.warn(`⚠️  [${productLabel}] SIM assignée ${assignedSimCardNumber} introuvable dans la liste !`)
     }
   }
 
-  console.log(LINE)
-  console.log('')
+  logger.info(LINE)
+  logger.info('')
 
   return {
     ok: true,

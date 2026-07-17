@@ -15,6 +15,10 @@ const DEFAULT_RUNTIME_CONFIG = {
     timeoutMs: 4000,
     debug: false,
   },
+  logging: {
+    level: 'warn',
+    http: false,
+  },
   testSequences: {
     default: 'testSequence-default.json',
     byProduct: {
@@ -86,6 +90,10 @@ export function getMachineUid() {
 
 export function getApiStatusConfig() {
   return getRuntimeConfig().apiStatus || DEFAULT_RUNTIME_CONFIG.apiStatus
+}
+
+export function getLoggingConfig() {
+  return getRuntimeConfig().logging || DEFAULT_RUNTIME_CONFIG.logging
 }
 
 export function getTestSequenceConfig() {
