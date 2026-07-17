@@ -7,10 +7,14 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 
 # Installer les dépendances
-RUN npm install --frozen-lockfile
+RUN npm ci
 
 # Copier le reste des fichiers du projet
 COPY . .
+
+# Valider le code avant de construire l'image de production
+RUN npm run lint
+RUN npm test
 
 # Construire l'application avec Vite
 RUN npm run build
