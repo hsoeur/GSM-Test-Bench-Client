@@ -6,8 +6,7 @@ import { useOperator } from '../context/useOperator.js'
 import { loadProductSimCards } from '../services/simCardLoadingService.js'
 import { loadProductTestSequence } from '../services/testSequenceLoadingService.js'
 import { printConfiguredLabelsForProduct } from '../services/labelPrintingService.js'
-import { parseScannedProductLabel } from '../services/scannedLabelParser.js'
-import { validateScannedProduct } from '../services/scannedProductValidationService.js'
+import { handleProductScan } from '../services/productScanHandlerService.js'
 import { submitProductTraceabilities } from '../services/productTraceabilitySubmissionService.js'
 import { submitKitTraceabilityIfNeeded } from '../services/kitTraceabilitySubmissionService.js'
 import { getMachineUid, getProductStatusUids } from '../config/runtimeConfig.js'
@@ -251,28 +250,14 @@ function Product({ productLabel, simSelectId, currentOperationNumber, productUid
     try {
       // Gérer tous les scans (scan-label, scan-label-2, etc.)
       if (stepId.startsWith('scan-label')) {
-        // Parse label and fetch MO
-        const parsedLabel = parseScannedProductLabel(value)
-        const raw = parsedLabel.raw
-        const serialPart = parsedLabel.serialNumber
-        const ofPart = parsedLabel.manufacturingOrderUid
-
-        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-        console.log('📦 SCAN PRODUIT')
-        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-        console.log('🏷️  Étiquette scannée:', raw)
-        console.log('🔢 Numéro de série:', serialPart)
-        console.log('📋 OF:', ofPart)
-        console.log('')
-
         // Démarrer le chrono au premier scan
         if (scannedProductsRef.current.length === 0) {
           testStartTsRef.current = Date.now()
           setTestData(prev => ({ ...prev, testStartTs: Date.now() }))
         }
 
-        const scanValidation = await validateScannedProduct({
-          parsedLabel,
+        const scanValidation = await handleProductScan({
+          value,
           stepId,
           testSequence,
           productUid,
