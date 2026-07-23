@@ -25,6 +25,7 @@ export const ENDPOINTS = {
   gsmInit: join(API_BASES.TEST_GSM, 'api/Gsm/init-4g'),
   gsmCall: join(API_BASES.TEST_GSM, 'api/Gsm/call'),
   gsmHangup: join(API_BASES.TEST_GSM, 'api/Gsm/hangup'),
+  gsmMachine: join(API_BASES.TEST_GSM, 'api/Machine'),
   dataApiHealth: join(API_BASES.DATA, 'api/Health/Live'),
   dataDbHealth: join(API_BASES.DATA, 'api/Health/Database'),
   
@@ -73,13 +74,8 @@ export const ENDPOINTS = {
   // POST api/KitTraceability/create
   kitTraceabilityCreate: join(API_BASES.MO, 'api/KitTraceability/create'),
 
-  // Print labels
-  // GET api/Print/PrintBySerialNumber
-  printBySerialNumber: ({ manufacturingOrderUid, productUid, uidUsage, serialNumber } = {}) =>
-    join(
-      API_BASES.PRINT,
-      `api/Print/PrintBySerialNumber?manufacturingOrderUid=${encodeURIComponent(manufacturingOrderUid ?? '')}&productUid=${encodeURIComponent(productUid ?? '')}&uidUsage=${encodeURIComponent(uidUsage ?? '')}&serialNumber=${encodeURIComponent(serialNumber ?? '')}`,
-    ),
+  // Print jobs are routed server-side from machineName to a network printer.
+  printJobs: join(API_BASES.PRINT, 'api/Print/jobs'),
 }
 
 export default { API_BASES, ENDPOINTS }

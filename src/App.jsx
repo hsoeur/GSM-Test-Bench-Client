@@ -12,6 +12,8 @@ import { useOperator } from './context/useOperator.js'
 import ManufacturingOrderScanner from './components/ManufacturingOrderScanner.jsx'
 import OperationSelector from './components/OperationSelector.jsx'
 import SimAssignment from './components/SimAssignment.jsx'
+import MachineSetup from './components/MachineSetup.jsx'
+import { clearMachineName, detectMachineName, initializeMachineFromUrl, setMachineName } from './services/machineService.js'
 
 function readStorageJson(key) {
   try {
@@ -24,6 +26,8 @@ function readStorageJson(key) {
 }
 
 function App() {
+  const [machineName, setCurrentMachineName] = useState(() => initializeMachineFromUrl())
+  const [machineDetectionState, setMachineDetectionState] = useState('pending')
   const { operator, login, logout } = useOperator()
   const [mo, setMo] = useState(() => readStorageJson('ui-test-gsm:selectedMO')) // { uid, data }
   const [operation, setOperation] = useState(() => readStorageJson('ui-test-gsm:selectedOP'))
@@ -62,6 +66,22 @@ function App() {
       initLockRef.current = false
     }
   }
+
+  useEffect(() => {
+    let cancelled = false
+
+    detectMachineName().then((detectedMachineName) => {
+      if (!cancelled && detectedMachineName) {
+        setCurrentMachineName(setMachineName(detectedMachineName))
+      }
+    }).finally(() => {
+      if (!cancelled) setMachineDetectionState('done')
+    })
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   useEffect(() => {
     // Run once even under React StrictMode (which double-invokes).
@@ -137,12 +157,27 @@ function App() {
     logout()
   }
 
+  const handleMachineConfigured = (value) => {
+    setCurrentMachineName(setMachineName(value))
+  }
+
+  const handleChangeMachine = () => {
+    clearMachineName()
+    setCurrentMachineName(null)
+  }
+
   return (
     <div className="app">
       <header className="brand-header">
         <div className="brand-bar">
           <img src={logo} alt="Test GSM" className="brand-logo" />
           <div className="brand-name">Test GSM</div>
+          <div className="machine-indicator">
+            Poste: {machineName || '—'}
+            {machineName && (
+              <button className="btn-ghost" type="button" onClick={handleChangeMachine}>Changer poste</button>
+            )}
+          </div>
           <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
             <span style={{ fontSize: 13, color: 'var(--muted)' }}>
               Opérateur: {operator ? `${operator.lastName} ${operator.firstName}` : '—'}
@@ -172,7 +207,15 @@ function App() {
           </div>
         </div>
       </header>
-      {!operator ? (
+      {!machineName && machineDetectionState === 'pending' ? (
+        <div className="center-screen">
+          <div className="card">Détection automatique du poste…</div>
+        </div>
+      ) : !machineName ? (
+        <div className="center-screen">
+          <MachineSetup onConfigured={handleMachineConfigured} />
+        </div>
+      ) : !operator ? (
         <div className="center-screen">
           <OperatorAuth onAuthenticated={handleAuthenticated} />
         </div>

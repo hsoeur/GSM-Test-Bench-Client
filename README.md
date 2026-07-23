@@ -47,3 +47,22 @@ environment:
 
 API endpoint resolution lives in `src/config/apiConfig.js` and runtime config
 loading lives in `src/config/runtimeConfig.js`.
+
+## Machine and network printer routing
+
+Each browser detects the unique production machine name before production can
+start. The name is stored in local storage and can also be supplied in the URL:
+
+```text
+http://ui-test-gsm/?machine=PC-PRODUCTION-03
+```
+
+Printing uses `POST /api/Print/jobs`. Printer Prof must map the supplied
+`machineName` to a network printer; this client never supplies a printer address.
+The JSON body contains `jobId`, `machineName`, `manufacturingOrderUid`,
+`productUid`, `uidUsage`, and `serialNumber`.
+
+At startup, the client first calls `GET /api/Machine` on the local Test GSM API.
+The returned `machineName` is saved automatically. The URL parameter, saved
+value, and manual setup screen remain available as fallbacks when the local API
+cannot provide the machine name.
