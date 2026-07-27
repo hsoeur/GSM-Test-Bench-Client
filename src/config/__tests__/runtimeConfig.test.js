@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import validRuntimeConfig from '../../../public/config/runtime-config.json'
 
 describe('loadRuntimeConfig', () => {
   beforeEach(() => {
@@ -10,14 +11,17 @@ describe('loadRuntimeConfig', () => {
     vi.unstubAllGlobals()
   })
 
-  it('loads and exposes a valid merged runtime config', async () => {
+  it('loads and exposes the complete runtime config', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
       ok: true,
       json: async () => ({
+        ...validRuntimeConfig,
         apiBases: {
+          ...validRuntimeConfig.apiBases,
           DATA: 'http://data.local',
         },
         productStatusUids: {
+          ...validRuntimeConfig.productStatusUids,
           KO: 'KO',
         },
       }),
@@ -28,7 +32,7 @@ describe('loadRuntimeConfig', () => {
     await loadRuntimeConfig()
 
     expect(getApiBases().DATA).toBe('http://data.local')
-    expect(getApiBases().TEST_GSM).toBe('/gsm-api')
+    expect(getApiBases().TEST_GSM).toBe(validRuntimeConfig.apiBases.TEST_GSM)
     expect(getProductStatusUids().KO).toBe('KO')
     expect(window.__RUNTIME_CONFIG__.apiBases.DATA).toBe('http://data.local')
   })
@@ -48,11 +52,13 @@ describe('loadRuntimeConfig', () => {
     expect(() => getRuntimeConfig()).toThrow('Configuration runtime invalide')
   })
 
-  it('fails fast when merged config is invalid', async () => {
+  it('fails fast when runtime config is incomplete', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
       ok: true,
       json: async () => ({
+        ...validRuntimeConfig,
         apiBases: {
+          ...validRuntimeConfig.apiBases,
           PRINT: '',
         },
       }),
@@ -62,7 +68,9 @@ describe('loadRuntimeConfig', () => {
 
     await expect(loadRuntimeConfig()).rejects.toMatchObject({
       name: 'RuntimeConfigValidationError',
-      errors: ['apiBases.PRINT est obligatoire et doit être une chaîne non vide.'],
+      errors: expect.arrayContaining([
+        'apiBases.PRINT est obligatoire et doit être une chaîne non vide.',
+      ]),
     })
   })
 })

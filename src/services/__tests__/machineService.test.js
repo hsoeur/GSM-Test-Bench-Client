@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { clearMachineName, detectMachineName, getMachineName, initializeMachineFromUrl, setMachineName } from '../machineService.js'
+import runtimeConfig from '../../../public/config/runtime-config.json'
 
 const { getJsonMock } = vi.hoisted(() => ({ getJsonMock: vi.fn() }))
 vi.mock('../http.js', () => ({ getJson: getJsonMock }))
@@ -37,7 +38,7 @@ describe('machineService', () => {
     getJsonMock.mockResolvedValue({ ok: true, data: { machineName: ' PC-PROD-03 ' } })
 
     await expect(detectMachineName()).resolves.toBe('PC-PROD-03')
-    expect(getJsonMock).toHaveBeenCalledWith('/gsm-api/api/Machine', { timeout: 4000 })
+    expect(getJsonMock).toHaveBeenCalledWith(`${runtimeConfig.apiBases.TEST_GSM}/api/Machine`, { timeout: 4000 })
   })
 
   it('returns null when automatic detection is unavailable', async () => {

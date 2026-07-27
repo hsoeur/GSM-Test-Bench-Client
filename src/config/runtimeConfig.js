@@ -1,63 +1,8 @@
 import { assertValidRuntimeConfig, RuntimeConfigValidationError } from './runtimeConfigValidator.js'
 
-const DEFAULT_RUNTIME_CONFIG = {
-  apiBases: {
-    TEST_GSM: '/gsm-api',
-    DATA: '/data-api',
-    MO: '/mo-api',
-    PRINT: '/print-api',
-  },
-  productStatusUids: {
-    OK: 'OK',
-    KO: 'NOK',
-  },
-  machineUid: 'MO03A',
-  apiStatus: {
-    pollIntervalMs: 10000,
-    timeoutMs: 4000,
-    debug: false,
-  },
-  logging: {
-    level: 'warn',
-    http: false,
-  },
-  testSequences: {
-    default: 'testSequence-default.json',
-    byProduct: {
-      '61PT00567A': 'testSequence-61PT00567A.json',
-      '61PT00571A': 'testSequence-61PT00571A.json',
-      '61PT00505F': 'testSequence-61PT00505F.json',
-      '71PT00634A': 'testSequence-71PT00634A.json',
-      '71PT00640A': 'testSequence-71PT00640A.json',
-      '71PT00641': 'testSequence-71PT00641.json',
-      '71PT00643A': 'testSequence-71PT00643A.json',
-    },
-  },
-  printLabels: {
-    byProduct: {
-      '71PT00634A': { productUid: '51PT00634A', usageSuffix: 'TKE' },
-      '71PT00640A': { productUid: '51PT00640A', usageSuffix: 'TKE V2' },
-      '71PT00641': { productUid: '51PT00641', usageSuffix: 'AMP' },
-      '71PT00643A': { productUid: '51PT00643A', usageSuffix: 'AMP V2' },
-    },
-  },
-}
-
-let runtimeConfig = DEFAULT_RUNTIME_CONFIG
-
-const isPlainObject = (value) => value && typeof value === 'object' && !Array.isArray(value)
-
-const mergeConfig = (base, override) => {
-  if (!isPlainObject(override)) return base
-  return Object.entries(override).reduce((acc, [key, value]) => {
-    if (isPlainObject(value) && isPlainObject(acc[key])) {
-      acc[key] = mergeConfig(acc[key], value)
-    } else if (value !== undefined && value !== null) {
-      acc[key] = value
-    }
-    return acc
-  }, { ...base })
-}
+let runtimeConfig = import.meta.env.MODE === 'test'
+  ? globalThis.__TEST_RUNTIME_CONFIG__ ?? null
+  : null
 
 export async function loadRuntimeConfig() {
   const url = `/config/runtime-config.json?t=${Date.now()}`
@@ -65,9 +10,8 @@ export async function loadRuntimeConfig() {
     const response = await fetch(url, { cache: 'no-store' })
     if (!response.ok) throw new Error(`HTTP ${response.status}`)
     const loadedConfig = await response.json()
-    const mergedConfig = mergeConfig(DEFAULT_RUNTIME_CONFIG, loadedConfig)
-    assertValidRuntimeConfig(mergedConfig)
-    runtimeConfig = mergedConfig
+    assertValidRuntimeConfig(loadedConfig)
+    runtimeConfig = loadedConfig
   } catch (error) {
     runtimeConfig = null
     throw error instanceof RuntimeConfigValidationError
@@ -88,31 +32,29 @@ export function getRuntimeConfig() {
 }
 
 export function getApiBases() {
-  return getRuntimeConfig().apiBases || DEFAULT_RUNTIME_CONFIG.apiBases
+  return getRuntimeConfig().apiBases
 }
 
 export function getProductStatusUids() {
-  return getRuntimeConfig().productStatusUids || DEFAULT_RUNTIME_CONFIG.productStatusUids
+  return getRuntimeConfig().productStatusUids
 }
 
 export function getMachineUid() {
-  return getRuntimeConfig().machineUid || DEFAULT_RUNTIME_CONFIG.machineUid
+  return getRuntimeConfig().machineUid
 }
 
 export function getApiStatusConfig() {
-  return getRuntimeConfig().apiStatus || DEFAULT_RUNTIME_CONFIG.apiStatus
+  return getRuntimeConfig().apiStatus
 }
 
 export function getLoggingConfig() {
-  return getRuntimeConfig().logging || DEFAULT_RUNTIME_CONFIG.logging
+  return getRuntimeConfig().logging
 }
 
 export function getTestSequenceConfig() {
-  return getRuntimeConfig().testSequences || DEFAULT_RUNTIME_CONFIG.testSequences
+  return getRuntimeConfig().testSequences
 }
 
 export function getPrintLabelConfig(productUid) {
   return getRuntimeConfig().printLabels?.byProduct?.[productUid] || null
 }
-
-export { DEFAULT_RUNTIME_CONFIG }

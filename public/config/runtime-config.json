@@ -1,9 +1,9 @@
 {
   "apiBases": {
-    "TEST_GSM": "/gsm-api",
-    "DATA": "/data-api",
-    "MO": "/mo-api",
-    "PRINT": "/print-api"
+    "TEST_GSM": "http://localhost:5001",
+    "DATA": "http://localhost:10000",
+    "MO": "http://localhost:10000",
+    "PRINT": "http://localhost:7001"
   },
   "productStatusUids": {
     "OK": "OK",
@@ -14,6 +14,10 @@
     "pollIntervalMs": 10000,
     "timeoutMs": 4000,
     "debug": false
+  },
+  "logging": {
+    "level": "warn",
+    "http": false
   },
   "testSequences": {
     "default": "testSequence-default.json",

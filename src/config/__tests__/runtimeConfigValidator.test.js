@@ -1,17 +1,17 @@
 import { describe, expect, it } from 'vitest'
 import { RuntimeConfigValidationError, assertValidRuntimeConfig, validateRuntimeConfig } from '../runtimeConfigValidator.js'
-import { DEFAULT_RUNTIME_CONFIG } from '../runtimeConfig.js'
+import validRuntimeConfig from '../../../public/config/runtime-config.json'
 
 describe('validateRuntimeConfig', () => {
-  it('accepts the default runtime configuration', () => {
-    expect(validateRuntimeConfig(DEFAULT_RUNTIME_CONFIG)).toEqual([])
+  it('accepts the centralized runtime configuration', () => {
+    expect(validateRuntimeConfig(validRuntimeConfig)).toEqual([])
   })
 
   it('rejects missing mandatory API bases and identifiers', () => {
     const errors = validateRuntimeConfig({
-      ...DEFAULT_RUNTIME_CONFIG,
+      ...validRuntimeConfig,
       apiBases: {
-        ...DEFAULT_RUNTIME_CONFIG.apiBases,
+        ...validRuntimeConfig.apiBases,
         DATA: '',
       },
       productStatusUids: {
@@ -28,7 +28,7 @@ describe('validateRuntimeConfig', () => {
 
   it('rejects invalid operational settings', () => {
     const errors = validateRuntimeConfig({
-      ...DEFAULT_RUNTIME_CONFIG,
+      ...validRuntimeConfig,
       apiStatus: {
         pollIntervalMs: 0,
         timeoutMs: '4000',
@@ -49,9 +49,9 @@ describe('validateRuntimeConfig', () => {
 
   it('rejects unresolved environment placeholders', () => {
     const errors = validateRuntimeConfig({
-      ...DEFAULT_RUNTIME_CONFIG,
+      ...validRuntimeConfig,
       apiBases: {
-        ...DEFAULT_RUNTIME_CONFIG.apiBases,
+        ...validRuntimeConfig.apiBases,
         DATA: '${API_DATA_BASE}',
       },
     })

@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import runtimeConfig from '../../../public/config/runtime-config.json'
 
 const requestMock = vi.fn()
 
@@ -17,7 +18,7 @@ describe('printService', () => {
       status: 202,
       data: { jobUid: 'JOB-1' },
     })
-    expect(requestMock).toHaveBeenCalledWith('/print-api/api/Print/jobs', expect.objectContaining({
+    expect(requestMock).toHaveBeenCalledWith(`${runtimeConfig.apiBases.PRINT}/api/Print/jobs`, expect.objectContaining({
       method: 'POST',
       body: JSON.stringify(payload),
     }))
