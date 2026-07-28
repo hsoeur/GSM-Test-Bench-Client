@@ -2,7 +2,6 @@ import './App.css'
 import Product from './components/Product.jsx'
 import ApiStatusFooter from './components/ApiStatusFooter.jsx'
 import ImpactMessage from './components/ImpactMessage.jsx'
-import logo from './assets/logo.jpg'
 import { getApiStatusConfig } from './config/runtimeConfig.js'
 import { checkGsmHealth, checkDataHealth } from './services/healthService'
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -170,7 +169,11 @@ function App() {
     <div className="app">
       <header className="brand-header">
         <div className="brand-bar">
-          <img src={logo} alt="Test GSM" className="brand-logo" />
+          <img
+            src={`${import.meta.env.BASE_URL}assets/Amphitech-RVB.png`}
+            alt="Amphitech"
+            className="brand-logo"
+          />
           <div className="brand-name">Test GSM</div>
           <div className="machine-indicator">
             Poste: {machineName || '—'}
