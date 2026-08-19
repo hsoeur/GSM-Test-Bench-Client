@@ -5,6 +5,21 @@ import { getMachineName } from './machineService.js'
 
 const LINE = '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'
 
+async function printLabel(labelName, params) {
+  try {
+    const result = await printBySerialNumber(params)
+    if (!result?.ok) {
+      const title = result?.data?.title || 'Erreur d’impression'
+      const detail = result?.data?.detail || `Le service d’impression a répondu avec le statut HTTP ${result?.status || 0}.`
+      throw new Error(`${title} — ${detail}`)
+    }
+    return result
+  } catch (error) {
+    const message = String(error?.message || error || 'Erreur inconnue')
+    throw new Error(`Échec de l’impression de l’étiquette « ${labelName} » : ${message}`, { cause: error })
+  }
+}
+
 export async function printConfiguredLabelsForProduct(sourceProductUid, scannedProduct) {
   const printLabelConfig = getPrintLabelConfig(sourceProductUid)
   if (!printLabelConfig || !scannedProduct) {
@@ -29,7 +44,7 @@ export async function printConfiguredLabelsForProduct(sourceProductUid, scannedP
 
   const portalUsage = `Gateway Montage Portail ASM ${usageSuffix}`
   logger.info(`🖨️  [1/2] Impression étiquette Portail ASM (${portalUsage})`)
-  const portalResult = await printBySerialNumber({
+  const portalResult = await printLabel('Portail ASM', {
     ...printParams,
     jobId: createPrintJobId(printParams, portalUsage),
     uidUsage: portalUsage,
@@ -38,7 +53,7 @@ export async function printConfiguredLabelsForProduct(sourceProductUid, scannedP
 
   const designationUsage = `Gateway Montage Mac ${usageSuffix}`
   logger.info(`🖨️  [2/2] Impression étiquette Désignation (${designationUsage})`)
-  const designationResult = await printBySerialNumber({
+  const designationResult = await printLabel('Désignation', {
     ...printParams,
     jobId: createPrintJobId(printParams, designationUsage),
     uidUsage: designationUsage,

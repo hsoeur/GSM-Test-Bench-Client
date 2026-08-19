@@ -42,4 +42,37 @@ describe('labelPrintingService', () => {
     })).rejects.toThrow('Aucun poste configuré')
     expect(printBySerialNumberMock).not.toHaveBeenCalled()
   })
+
+  it('surfaces the API error with the failing label context and stops the workflow', async () => {
+    printBySerialNumberMock.mockRejectedValueOnce(
+      new Error("Poste inconnu — Aucune imprimante n'est configurée pour le poste 'PC-PROD-03'."),
+    )
+    const { printConfiguredLabelsForProduct } = await import('../labelPrintingService.js')
+
+    await expect(printConfiguredLabelsForProduct('SOURCE-PRODUCT', {
+      ofUid: 'OF-12',
+      serialLabel: 'SN-34',
+    })).rejects.toThrow(
+      "Échec de l’impression de l’étiquette « Portail ASM » : Poste inconnu — Aucune imprimante n'est configurée pour le poste 'PC-PROD-03'.",
+    )
+    expect(printBySerialNumberMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('identifies an error on the designation label', async () => {
+    printBySerialNumberMock
+      .mockResolvedValueOnce({ ok: true, status: 200 })
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 503,
+        data: { title: 'Erreur d’impression', detail: 'La transmission vers l’imprimante a échoué.' },
+      })
+    const { printConfiguredLabelsForProduct } = await import('../labelPrintingService.js')
+
+    await expect(printConfiguredLabelsForProduct('SOURCE-PRODUCT', {
+      ofUid: 'OF-12',
+      serialLabel: 'SN-34',
+    })).rejects.toThrow(
+      'Échec de l’impression de l’étiquette « Désignation » : Erreur d’impression — La transmission vers l’imprimante a échoué.',
+    )
+  })
 })
