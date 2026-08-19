@@ -1,5 +1,5 @@
 import { logger } from './loggerService.js'
-import { getManufacturingOrderByUid } from './manufacturingOrderService.js'
+import { validateManufacturingOrder } from './manufacturingOrderValidationService.js'
 import { getLatestProductTraceability } from './productTraceabilityService.js'
 
 export async function validateScannedProduct({
@@ -12,14 +12,21 @@ export async function validateScannedProduct({
   okStatusUid,
 } = {}) {
   const raw = parsedLabel.raw
+  const productSuffix = parsedLabel.productSuffix
   const serialPart = parsedLabel.serialNumber
   const ofPart = parsedLabel.manufacturingOrderUid
 
-  logger.info('🌐 API CALL #1 - getManufacturingOrderByUid')
-  logger.info('   └─ Endpoint: /api/ManufacturingOrder/by-manufacturing-order-uid')
-  logger.info('   └─ Paramètre: manufacturingOrderUid =', ofPart)
+  logger.info('🌐 API CALL #1 - validateManufacturingOrder')
+  logger.info('   └─ Endpoint: POST /api/ManufacturingOrders/validate')
+  logger.info('   └─ Suffixe produit:', productSuffix)
+  logger.info('   └─ Numéro de série:', serialPart)
+  logger.info('   └─ OF:', ofPart)
 
-  const { ok, data, status } = await getManufacturingOrderByUid(ofPart)
+  const { ok, data, status, errorMessage } = await validateManufacturingOrder({
+    productSuffix,
+    serialNumber: serialPart,
+    manufacturingOrderId: ofPart,
+  })
 
   logger.info('📥 RÉPONSE:')
   logger.info('   └─ Status HTTP:', status)
@@ -28,10 +35,10 @@ export async function validateScannedProduct({
   logger.info('')
 
   if (!ok || !data) {
-    logger.error('❌ Échec récupération OF - Status:', status)
+    logger.error('❌ Échec validation OF - Status:', status)
     return {
       type: 'error',
-      errorMessage: `Échec récupération OF (${status})`,
+      errorMessage: errorMessage || `Échec validation OF (${status})`,
     }
   }
 

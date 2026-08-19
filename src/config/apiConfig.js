@@ -36,6 +36,7 @@ export const ENDPOINTS = {
     API_BASES.MO,
     `api/ManufacturingOrder/by-manufacturing-order-uid?manufacturingOrderUid=${encodeURIComponent(uid || '')}`,
   ),
+  manufacturingOrderValidate: join(API_BASES.MO, 'api/ManufacturingOrders/validate'),
   
   // ⚠️ DEPRECATED: Product Traceability N-1 check (no longer used)
   // Previously: api/ProductTraceability/HasPreviousOperationOkStatus
