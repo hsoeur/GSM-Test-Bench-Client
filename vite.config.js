@@ -6,6 +6,7 @@ export default defineConfig({
   plugins: [react()],
   test: {
     setupFiles: ['./src/test/setupRuntimeConfig.js'],
+    exclude: ['src/integration/**', 'node_modules/**', 'dist/**'],
   },
   server: {
     host: 'localhost',

@@ -26,15 +26,15 @@ export const ENDPOINTS = {
   gsmCall: join(API_BASES.TEST_GSM, 'api/Gsm/call'),
   gsmHangup: join(API_BASES.TEST_GSM, 'api/Gsm/hangup'),
   gsmMachine: join(API_BASES.TEST_GSM, 'api/Machine'),
-  dataApiHealth: join(API_BASES.DATA, 'api/Health/Live'),
-  dataDbHealth: join(API_BASES.DATA, 'api/Health/Database'),
+  dataApiHealth: join(API_BASES.DATA, 'api/Healths/Live'),
+  dataDbHealth: join(API_BASES.DATA, 'api/Healths/Database'),
   
   // New endpoint for Manufacturing Order by UID
   // Previously: api/ManufacturingOrder/GetManufacturingOrderByManufacturingOrderUid
-  // Now:       api/ManufacturingOrder/by-manufacturing-order-uid
+  // Now:       api/ManufacturingOrders/by-manufacturing-order-uid
   manufacturingOrderByUid: (uid) => join(
     API_BASES.MO,
-    `api/ManufacturingOrder/by-manufacturing-order-uid?manufacturingOrderUid=${encodeURIComponent(uid || '')}`,
+    `api/ManufacturingOrders/by-manufacturing-order-uid?manufacturingOrderUid=${encodeURIComponent(uid || '')}`,
   ),
   manufacturingOrderValidate: join(API_BASES.MO, 'api/ManufacturingOrders/validate'),
   
@@ -59,10 +59,10 @@ export const ENDPOINTS = {
     ),
   // New operations endpoint for a product UID
   // Previously: api/Operation/GetCollectionOperationBasic
-  // Now:       api/Operation/basic-by-product-uid
+  // Now:       api/Operations/basic-by-product-uid
   operationsByProductUid: (productUid) => join(
     API_BASES.MO,
-    `api/Operation/basic-by-product-uid?productUid=${encodeURIComponent(productUid || '')}`,
+    `api/Operations/basic-by-product-uid?productUid=${encodeURIComponent(productUid || '')}`,
   ),
   // Operators
   operatorsCurrent: join(API_BASES.MO, 'api/Users/current'),
@@ -72,8 +72,8 @@ export const ENDPOINTS = {
   simCards: join(API_BASES.MO, 'api/SimCards/all'),
   
   // Kit Traceability (Mother/Daughter product association)
-  // POST api/KitTraceability/create
-  kitTraceabilityCreate: join(API_BASES.MO, 'api/KitTraceability/create'),
+  // POST api/KitTraceabilities/create
+  kitTraceabilityCreate: join(API_BASES.MO, 'api/KitTraceabilities/create'),
 
   // Print jobs are routed server-side from machineName to a network printer.
   printJobs: join(API_BASES.PRINT, 'api/Print/jobs'),

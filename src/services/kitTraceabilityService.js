@@ -1,5 +1,5 @@
 import { ENDPOINTS } from '../config/apiConfig.js'
-import { request } from './http.js'
+import { getJson } from './http.js'
 
 /**
  * Create a Kit Traceability record to associate a mother/daughter product pair
@@ -19,7 +19,7 @@ export async function createKitTraceability(payload) {
   const url = ENDPOINTS.kitTraceabilityCreate
   if (!url || !payload) return { ok: false, status: 400 }
   
-  const res = await request(url, {
+  const res = await getJson(url, {
     method: 'POST',
     headers: { 
       accept: 'application/json', 
@@ -32,7 +32,7 @@ export async function createKitTraceability(payload) {
   return { 
     ok: res.ok, 
     status: res.status,
-    data: res.data 
+    data: res.data
   }
 }
 

@@ -1,5 +1,5 @@
 import { ENDPOINTS } from '../config/apiConfig.js'
-import { request, getJson } from './http.js'
+import { getJson } from './http.js'
 
 // ⚠️ DEPRECATED: This function is no longer used. Use getLatestProductTraceability instead.
 // export async function hasPreviousOperationOkStatus(productUid, serialNumber, currentOperationNumber) {
@@ -28,13 +28,13 @@ import { request, getJson } from './http.js'
 export async function createProductTraceability(payload) {
   const url = ENDPOINTS.productTraceabilityCreate
   if (!url || !payload) return { ok: false, status: 400 }
-  const res = await request(url, {
+  const res = await getJson(url, {
     method: 'POST',
     headers: { accept: 'application/json', 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
     timeout: 5000,
   })
-  return { ok: res.ok, status: res.status }
+  return { ok: res.ok, status: res.status, data: res.data }
 }
 
 export async function getLatestProductTraceability(productUid, serialNumber, operationUid) {
