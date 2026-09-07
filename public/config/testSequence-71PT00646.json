@@ -1,0 +1,89 @@
+{
+  "testSequence": [
+    {
+      "id": "scan-label",
+      "instruction": "Scanner l'étiquette de lot.",
+      "image": "/assets/IMG_4695.png",
+      "actionType": "scan",
+      "actionConfig": {
+        "placeholder": "Scannez ou saisissez le code...",
+        "validation": "label",
+        "autoFocus": true,
+        "previousOperationUid": 55,
+        "checkProductUid": "51PT00646"
+      }
+    },
+    {
+      "id": "insert-sim",
+      "instruction": "Tout brancher et mettre l'interrupteur sur ON",
+      "pictogram": "sim-insert",
+      "actionType": "button",
+      "actionConfig": {
+        "label": "Continuer",
+        "variant": "primary"
+      }
+    },
+    {
+      "id": "check-init",
+      "instruction": "Le produit est-il bien initialisé ? Led D6 clignote orange ?",
+      "pictogram": "power-check",
+      "image": "/assets/BTED6.jpg",
+      "actionType": "choice",
+      "actionConfig": {
+        "options": [
+          { "value": "ok", "label": "OUI", "variant": "success" },
+          { "value": "ko", "label": "NON", "variant": "error" }
+        ] 
+      }
+    },
+    {
+      "id": "test-phonie",
+      "instruction": "Tester la phonie après le BIP. Réaction produit.",
+      "pictogram": "phone-call",
+      "actionType": "choice",
+      "actionConfig": {
+        "triggerCall": true,
+        "options": [
+          { "value": "ok", "label": "Phonie OK", "variant": "success" },
+          { "value": "ko", "label": "Phonie KO", "variant": "error" }
+        ]
+      }
+    },
+    {
+      "id": "switch-off",
+      "instruction": "Mettre interrupteur sur OFF et vérifier led verte D1 éteinte.",
+      "pictogram": "power-check",
+      "image": "/assets/BTED1.jpg",
+      "actionType": "choice",
+      "actionConfig": {
+        "options": [
+          { "value": "ok", "label": "OK", "variant": "success" },
+          { "value": "ko", "label": "NOK", "variant": "error" }
+        ]
+      }
+    },
+    {
+      "id": "check-interco",
+      "instruction": "Vérifier Led D4 verte clignotante. Si présence rouge mettre la carte en panne. Basculer Inter C010 et vérifier extinction D4.",
+      "pictogram": "power-check",
+      "image": "/assets/BTED4.jpg",
+      "actionType": "choice",
+      "actionConfig": {
+        "options": [
+          { "value": "ok", "label": "OK", "variant": "success" },
+          { "value": "ko", "label": "NOK", "variant": "error" }
+        ]
+      }
+    },
+    {
+      "id": "test-complete",
+      "instruction": "Test terminé. Débrancher batterie. Vous pouvez tester une nouvelle carte.",
+      "pictogram": "check-circle",
+      "actionType": "button",
+      "actionConfig": {
+        "label": "Tester une autre carte",
+        "variant": "primary"
+      }
+    }
+  ]
+}

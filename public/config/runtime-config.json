@@ -28,7 +28,8 @@
       "71PT00634A": "testSequence-71PT00634A.json",
       "71PT00640A": "testSequence-71PT00640A.json",
       "71PT00641": "testSequence-71PT00641.json",
-      "71PT00643A": "testSequence-71PT00643A.json"
+      "71PT00643A": "testSequence-71PT00643A.json",
+      "71PT00646": "testSequence-71PT00646.json"
     }
   },
   "printLabels": {
@@ -48,6 +49,10 @@
       "71PT00643A": {
         "productUid": "51PT00643A",
         "usageSuffix": "AMP V2"
+      },
+      "71PT00646": {
+        "productUid": "71PT00646",
+        "usageSuffix": "646"
       }
     }
   }
