@@ -47,6 +47,7 @@ function BarcodeScanner({ title = 'Scanner de code-barres', onScan, autoStart = 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoStart, deviceId])
 
+  
   const startScanning = async () => {
     if (!videoRef.current || !readerRef.current) return
     setError('')
