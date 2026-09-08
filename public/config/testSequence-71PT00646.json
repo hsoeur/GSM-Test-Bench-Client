@@ -3,7 +3,7 @@
     {
       "id": "scan-label",
       "instruction": "Scanner l'étiquette de lot.",
-      "image": "/assets/IMG_4695.png",
+      "image": "/assets/V2.jpg",
       "actionType": "scan",
       "actionConfig": {
         "placeholder": "Scannez ou saisissez le code...",
@@ -25,20 +25,20 @@
     },
     {
       "id": "check-init",
-      "instruction": "Le produit est-il bien initialisé ? Led D6 clignote orange ?",
+      "instruction": "Le produit est-il bien initialisé ? Led D8 clignote verte ?",
       "pictogram": "power-check",
-      "image": "/assets/BTED6.jpg",
+      "image": "/assets/V2D6.jpeg",
       "actionType": "choice",
       "actionConfig": {
         "options": [
           { "value": "ok", "label": "OUI", "variant": "success" },
           { "value": "ko", "label": "NON", "variant": "error" }
-        ] 
+        ]
       }
     },
     {
       "id": "test-phonie",
-      "instruction": "Tester la phonie après le BIP. Réaction produit.",
+      "instruction": "Tester la phonie après réaction produit.",
       "pictogram": "phone-call",
       "actionType": "choice",
       "actionConfig": {
@@ -51,9 +51,9 @@
     },
     {
       "id": "switch-off",
-      "instruction": "Mettre interrupteur sur OFF et vérifier led verte D1 éteinte.",
+      "instruction": "Mettre interrupteur sur OFF et vérifier extinction D3.",
       "pictogram": "power-check",
-      "image": "/assets/BTED1.jpg",
+      "image": "/assets/V2D1.jpeg",
       "actionType": "choice",
       "actionConfig": {
         "options": [
@@ -64,9 +64,9 @@
     },
     {
       "id": "check-interco",
-      "instruction": "Vérifier Led D4 verte clignotante. Si présence rouge mettre la carte en panne. Basculer Inter C010 et vérifier extinction D4.",
+      "instruction": "Basculer Inter C010 vers led D6 et vérifier extinction D6.",
       "pictogram": "power-check",
-      "image": "/assets/BTED4.jpg",
+      "image": "/assets/V2D4.jpeg",
       "actionType": "choice",
       "actionConfig": {
         "options": [
