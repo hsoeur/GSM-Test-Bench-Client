@@ -9,7 +9,7 @@ et opérations de référence sont lus dans la vraie base au début de l’exéc
 La configuration locale est enregistrée dans `.env.integration` :
 
 ```dotenv
-DATA_API_BASE_URL=http://localhost:10000
+DATA_API_BASE_URL=http://localhost:11000
 TEST_MACHINE_UID=MO03A
 ```
 

@@ -11,7 +11,7 @@ globalThis.__TEST_RUNTIME_CONFIG__ = {
     TEST_GSM: process.env.GSM_API_BASE_URL || 'http://localhost:5001',
     DATA: baseUrl,
     MO: baseUrl,
-    PRINT: process.env.PRINT_API_BASE_URL || 'http://localhost:7001',
+    PRINT: process.env.PRINT_API_BASE_URL || 'http://localhost:12003',
   },
   productStatusUids: { OK: 'OK', KO: 'NOK' },
   machineUid: process.env.TEST_MACHINE_UID || 'MO03A',
