@@ -8,12 +8,13 @@ pool:
 
 variables:
   BUILD_CONFIGURATION: 'Release'
-  IMAGE_NAME: 'ui_testgsm_image'
+  # Parallel V2 deployment: keep the existing ui_testgsm service untouched.
+  IMAGE_NAME: 'ui_testgsm_v2_image'
   SERVER_USER: 'adminprod'
   SERVER_IP: '192.168.1.104'
-  SERVER_PATH: 'C:\Deploy\containers\ui_testgsm_container'
-  CONTAINER_NAME: 'ui_testgsm_container'
-  APP_PORT: '8015'
+  SERVER_PATH: 'C:\Deploy\containers\ui_testgsm_v2_container'
+  CONTAINER_NAME: 'ui_testgsm_v2_container'
+  APP_PORT: '12001'
 
 # Required secret variable:
 # - SSH_PASSWORD must be configured as a secret variable in Azure DevOps.
@@ -42,7 +43,7 @@ stages:
         artifactName: "docker-image"
 
 - stage: Deploy
-  displayName: "Deploy to 192.168.1.104"
+  displayName: "Deploy parallel V2 to 192.168.1.104:12001"
   dependsOn: Build
   jobs:
   - job: Deploy
