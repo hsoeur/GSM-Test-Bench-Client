@@ -3,8 +3,8 @@ import { getCurrentOperators, operatorLabel } from '../services/operatorService'
 
 export default function OperatorAuth({
   onAuthenticated,
-  title = 'Authentification',
-  description = "Sélectionnez votre nom pour vous connecter.",
+  title = 'Qui utilise ce poste ?',
+  description = "Sélectionnez votre nom pour ouvrir la session de production.",
   storageKey = null,
   timeoutMs = 6000,
   autoSelectIfSingle = true,
@@ -108,7 +108,7 @@ export default function OperatorAuth({
                 </option>
               ))}
             </select>
-            <div style={{ display: 'flex', gap: 8 }}>
+            <div className="form-actions">
               <button className="btn" type="button" onClick={handleConfirm} disabled={!selectedOperator}>
                 Se connecter
               </button>

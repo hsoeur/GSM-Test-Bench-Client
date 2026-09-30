@@ -299,26 +299,13 @@ function Product({ productLabel, simSelectId, currentOperationNumber, productUid
       <div className="panel-header">
         <h2>{productLabel}</h2>
         {assignedSimCardNumber && (
-          <div style={{
-            fontSize: '0.9rem',
-            color: '#374151',
-            marginTop: '0.4rem',
-          }}>
-            📶 SIM : <strong>{assignedSimCardNumber}</strong>
+          <div className="product-meta">
+            SIM <strong>{assignedSimCardNumber}</strong>
           </div>
         )}
         {testSequenceFileName && (
-          <div className="panel-info" style={{ 
-            fontSize: '0.95rem', 
-            fontWeight: '600',
-            color: '#2563eb',
-            marginTop: '0.5rem',
-            padding: '0.5rem',
-            backgroundColor: '#eff6ff',
-            borderRadius: '4px',
-            border: '1px solid #bfdbfe'
-          }}>
-            📋 Séquence de test : {testSequenceFileName}
+          <div className="panel-info">
+            Séquence : {testSequenceFileName}
           </div>
         )}
         {testData.scannedProducts.length > 0 && (

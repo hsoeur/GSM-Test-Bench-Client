@@ -41,14 +41,14 @@ function SimAssignment({ onConfirm }) {
   const canConfirm = !loading && !error && simA && simB && simA !== simB
 
   return (
-    <div style={{ maxWidth: 640, width: '100%', padding: '0 16px' }}>
-      <h2 style={{ marginBottom: '0.25rem' }}>Attribution des cartes SIM</h2>
-      <p style={{ color: 'var(--muted)', marginBottom: '2rem', marginTop: 0 }}>
-        Sélectionnez une carte SIM pour chaque produit. Ce choix sera conservé pendant toute la session.
-      </p>
+    <section className="sim-assignment" aria-labelledby="sim-assignment-title">
+      <div className="sim-assignment__header">
+        <h2 id="sim-assignment-title">Quelles cartes SIM utiliser ?</h2>
+        <p>Sélectionnez une carte différente pour chaque produit. Le choix reste actif pendant la session.</p>
+      </div>
 
       {loading && (
-        <p style={{ color: 'var(--muted)' }}>Chargement des cartes SIM…</p>
+        <div className="loading-state" role="status"><span className="spinner" /> Chargement des cartes SIM…</div>
       )}
 
       {error && (
@@ -76,17 +76,8 @@ function SimAssignment({ onConfirm }) {
 
       {!loading && !error && (
         <>
-          <div style={{ marginBottom: '2rem' }}>
-            <div style={{
-              fontSize: '0.9rem',
-              fontWeight: 700,
-              color: '#374151',
-              marginBottom: '0.5rem',
-              textTransform: 'uppercase',
-              letterSpacing: '0.05em',
-            }}>
-              Product A
-            </div>
+          <div className="sim-assignment__group">
+            <div className="sim-assignment__label">Produit A</div>
             <SimSelector
               id="simAssignA"
               label=""
@@ -96,17 +87,8 @@ function SimAssignment({ onConfirm }) {
             />
           </div>
 
-          <div style={{ marginBottom: '2rem' }}>
-            <div style={{
-              fontSize: '0.9rem',
-              fontWeight: 700,
-              color: '#374151',
-              marginBottom: '0.5rem',
-              textTransform: 'uppercase',
-              letterSpacing: '0.05em',
-            }}>
-              Product B
-            </div>
+          <div className="sim-assignment__group">
+            <div className="sim-assignment__label">Produit B</div>
             <SimSelector
               id="simAssignB"
               label=""
@@ -123,17 +105,16 @@ function SimAssignment({ onConfirm }) {
           )}
 
           <button
-            className="btn btn-cta"
+            className="btn btn-cta sim-assignment__submit"
             type="button"
             disabled={!canConfirm}
             onClick={handleConfirm}
-            style={{ marginTop: '1rem', width: '100%', padding: '16px' }}
           >
             Confirmer la sélection
           </button>
         </>
       )}
-    </div>
+    </section>
   )
 }
 

@@ -11,7 +11,7 @@ export default function MachineSetup({ onConfigured }) {
 
   return (
     <form className="card machine-setup" onSubmit={handleSubmit}>
-      <h2>Configuration du poste</h2>
+      <h2>Quel est ce poste ?</h2>
       <p>Renseignez le nom unique du poste utilisé pour sélectionner l’imprimante réseau.</p>
       <label htmlFor="machine-name">Nom du poste</label>
       <input

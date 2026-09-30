@@ -40,6 +40,7 @@ function KeyboardScanner({
         if (onInvalid) onInvalid(value)
       }
     }
+    window.requestAnimationFrame(() => inputRef.current?.focus())
   }
 
   const onKeyDown = (e) => {
@@ -63,7 +64,7 @@ function KeyboardScanner({
         <strong>{title}</strong>
         <div className="scanner-controls">
           {showCaptureButton && (
-            <button className="btn" onClick={focusCapture}>Capturer</button>
+            <button className="btn" type="button" onClick={focusCapture}>Activer la saisie</button>
           )}
         </div>
       </div>
@@ -77,6 +78,8 @@ function KeyboardScanner({
           value={buffer}
           onChange={onChange}
           onKeyDown={onKeyDown}
+          aria-label={title || 'Scanner ou saisir un code'}
+          aria-invalid={Boolean(errorMsg)}
         />
       </div>
       {errorMsg && (

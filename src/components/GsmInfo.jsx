@@ -2,15 +2,15 @@ function GsmInfo({ phoneNumber, status, simUid }) {
   const getStatusLabel = () => {
     switch (status) {
       case 'idle':
-        return { label: 'En attente', color: 'var(--muted)' }
+        return { label: 'En attente', className: 'is-idle' }
       case 'calling':
-        return { label: 'Appel en cours...', color: '#f59e0b' }
+        return { label: 'Appel en cours…', className: 'is-warning' }
       case 'connected':
-        return { label: 'Connecté', color: '#22c55e' }
+        return { label: 'Connecté', className: 'is-success' }
       case 'error':
-        return { label: 'Erreur', color: '#ef4444' }
+        return { label: 'Erreur', className: 'is-error' }
       default:
-        return { label: 'Inconnu', color: 'var(--muted)' }
+        return { label: 'Inconnu', className: 'is-idle' }
     }
   }
 
@@ -19,7 +19,7 @@ function GsmInfo({ phoneNumber, status, simUid }) {
   return (
     <div className="gsm-info-panel">
       <div className="gsm-info-header">
-        📡 Communication GSM
+        Communication GSM
       </div>
       <div className="gsm-info-grid">
         <div className="gsm-info-item">
@@ -32,7 +32,7 @@ function GsmInfo({ phoneNumber, status, simUid }) {
         </div>
         <div className="gsm-info-item">
           <span className="gsm-info-label">Statut</span>
-          <span className="gsm-info-value" style={{ color: statusInfo.color, fontWeight: 700 }}>
+          <span className={`gsm-info-value ${statusInfo.className}`}>
             {statusInfo.label}
           </span>
         </div>

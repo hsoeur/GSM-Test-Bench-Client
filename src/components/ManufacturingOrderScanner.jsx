@@ -3,7 +3,7 @@ import KeyboardScanner from './KeyboardScanner.jsx'
 import ImpactMessage from './ImpactMessage.jsx'
 import { getManufacturingOrderByUid } from '../services/manufacturingOrderService.js'
 
-function ManufacturingOrderScanner({ onSelected, title = "Scanner l'ordre de fabrication" }) {
+function ManufacturingOrderScanner({ onSelected, title = "Quel ordre de fabrication tester ?" }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [lastUid, setLastUid] = useState('')
@@ -62,21 +62,21 @@ function ManufacturingOrderScanner({ onSelected, title = "Scanner l'ordre de fab
         />
 
         {loading && (
-          <div style={{ marginTop: 12 }}>
+          <div className="message-block">
             <ImpactMessage variant="info" title="Recherche de l'ordre…">
               Merci de patienter pendant la vérification.
             </ImpactMessage>
           </div>
         )}
         {error && (
-          <div style={{ marginTop: 12 }}>
+          <div className="message-block">
             <ImpactMessage variant="error" title="Échec de la sélection de l'ordre">
               {error}
             </ImpactMessage>
           </div>
         )}
         {lastUid && !loading && !error && (
-          <div style={{ marginTop: 8, fontSize: 12, color: 'var(--muted)' }}>
+          <div className="helper-text">
             Dernier UID saisi: <strong>{lastUid}</strong>
           </div>
         )}

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import ImpactMessage from './ImpactMessage.jsx'
 import { getOperationsByProductUid } from '../services/operationService.js'
 
-function OperationSelector({ productUid, onSelected, title = 'Sélectionner une opération' }) {
+function OperationSelector({ productUid, onSelected, title = 'Quelle opération réaliser ?' }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [ops, setOps] = useState([])
@@ -81,7 +81,7 @@ function OperationSelector({ productUid, onSelected, title = 'Sélectionner une 
 
         {!loading && !error && (
           <>
-            <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+            <div className="filter-field">
               <input
                 className="input"
                 type="text"
@@ -91,7 +91,7 @@ function OperationSelector({ productUid, onSelected, title = 'Sélectionner une 
               />
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 8 }}>
+            <div className="select-action-row">
               <select
                 className="input"
                 value={selectedUid}
@@ -108,7 +108,7 @@ function OperationSelector({ productUid, onSelected, title = 'Sélectionner une 
             </div>
 
             {selectedOp && (
-              <div style={{ marginTop: 8, fontSize: 12, color: 'var(--muted)' }}>
+              <div className="helper-text">
                 Sélection: <strong>{selectedOp.operationNumber}</strong> — {selectedOp.label} ({selectedOp.machine})
               </div>
             )}

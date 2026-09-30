@@ -125,10 +125,10 @@ function TestStep({ step, data, hasTestBattery = true, onNext, onError }) {
 
   if (step.id === 'test-complete') {
     if (isGood) {
-      resultBadge = <div className="result-badge result-badge-good">✅ ✅ CARTE BONNE ✅ ✅</div>
+      resultBadge = <div className="result-badge result-badge-good">✓ Test conforme</div>
       pictogramName = 'check-good'
     } else if (isBad) {
-      resultBadge = <div className="result-badge result-badge-bad">❌ ❌ CARTE MAUVAISE ❌ ❌</div>
+      resultBadge = <div className="result-badge result-badge-bad">× Test non conforme</div>
       pictogramName = 'check-bad'
     }
   }
@@ -139,7 +139,7 @@ function TestStep({ step, data, hasTestBattery = true, onNext, onError }) {
       
       <div className="test-step-pictogram">
         {step.image
-          ? <img src={step.image} alt={finalInstruction} style={{ maxWidth: '100%', maxHeight: 375, borderRadius: 8 }} />
+          ? <img src={step.image} alt={finalInstruction} className="test-step-image" />
           : <Pictogram name={pictogramName} />
         }
       </div>

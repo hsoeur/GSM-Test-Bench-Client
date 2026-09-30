@@ -10,31 +10,16 @@ function SimSelector({
   }
 
   return (
-    <div style={{ marginTop: 12, ...(style || {}) }}>
-      <label className="label" style={{ marginBottom: '16px', display: 'block' }}>{label}</label>
-      <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+    <div className="sim-selector" style={style}>
+      {label && <div className="label">{label}</div>}
+      <div className="sim-options" role="group" aria-label={label || 'Choisir une carte SIM'}>
         {options.map((opt, idx) => (
           <button
             key={opt.value || `sim-${idx}`}
-            className={`btn btn-cta ${value === opt.value ? 'btn-selected' : ''}`}
+            type="button"
+            className={`sim-option ${value === opt.value ? 'is-selected' : ''}`}
             onClick={() => handleSimClick(opt.value)}
-            style={{
-              flex: '1',
-              minWidth: '200px',
-              padding: '32px 24px',
-              fontSize: '1rem',
-              fontWeight: '600',
-              backgroundColor: '#f3f4f6',
-              color: '#1f2937',
-              border: value === opt.value ? '3px solid #2563eb' : '3px solid #d1d5db',
-              transition: 'all 0.2s ease',
-              whiteSpace: 'normal',
-              wordWrap: 'break-word',
-              lineHeight: '1.4',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
+            aria-pressed={value === opt.value}
           >
             {opt.label}
           </button>

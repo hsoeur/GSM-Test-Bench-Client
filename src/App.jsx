@@ -12,6 +12,8 @@ import ManufacturingOrderScanner from './components/ManufacturingOrderScanner.js
 import OperationSelector from './components/OperationSelector.jsx'
 import SimAssignment from './components/SimAssignment.jsx'
 import MachineSetup from './components/MachineSetup.jsx'
+import AppHeader from './components/AppHeader.jsx'
+import ContextBar from './components/ContextBar.jsx'
 import { clearMachineName, detectMachineName, initializeMachineFromUrl, setMachineName } from './services/machineService.js'
 
 function readStorageJson(key) {
@@ -167,49 +169,22 @@ function App() {
 
   return (
     <div className="app">
-      <header className="brand-header">
-        <div className="brand-bar">
-          <img
-            src={`${import.meta.env.BASE_URL}assets/Amphitech-RVB.png`}
-            alt="Amphitech"
-            className="brand-logo"
-          />
-          <div className="brand-name">Test GSM</div>
-          <div className="machine-indicator">
-            Poste: {machineName || '—'}
-            {machineName && (
-              <button className="btn-ghost" type="button" onClick={handleChangeMachine}>Changer poste</button>
-            )}
-          </div>
-          <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontSize: 13, color: 'var(--muted)' }}>
-              Opérateur: {operator ? `${operator.lastName} ${operator.firstName}` : '—'}
-            </span>
-            {operator && (
-              <>
-                <span style={{ fontSize: 13, color: 'var(--muted)' }}>
-                  OF: {mo ? (mo.data?.manufacturingOrderNumber || mo.uid) : '—'}
-                </span>
-                <span style={{ fontSize: 13, color: 'var(--muted)' }}>
-                  Opération: {operation ? `${operation.operationNumber} — ${operation.label}` : '—'}
-                </span>
-                {mo && (
-                  <button className="btn-ghost" type="button" onClick={() => setMo(null)}>Changer OF</button>
-                )}
-                {operation && (
-                  <button className="btn-ghost" type="button" onClick={() => setOperation(null)}>Changer Opération</button>
-                )}
-                {simAssignments && (
-                  <button className="btn-ghost" type="button" onClick={handleChangeSimAssignments}>Changer SIM</button>
-                )}
-              </>
-            )}
-            {operator && (
-              <button className="btn-ghost" type="button" onClick={handleLogout}>Déconnexion</button>
-            )}
-          </div>
-        </div>
-      </header>
+      <AppHeader
+        machineName={machineName}
+        operator={operator}
+        onChangeMachine={handleChangeMachine}
+        onLogout={handleLogout}
+      />
+      {operator && (
+        <ContextBar
+          manufacturingOrder={mo}
+          operation={operation}
+          simAssignments={simAssignments}
+          onChangeManufacturingOrder={() => setMo(null)}
+          onChangeOperation={() => setOperation(null)}
+          onChangeSimAssignments={handleChangeSimAssignments}
+        />
+      )}
       {!machineName && machineDetectionState === 'pending' ? (
         <div className="center-screen">
           <div className="card">Détection automatique du poste…</div>
@@ -238,7 +213,7 @@ function App() {
         <>
       {gsmInitState !== 'idle' && (
         gsmInitState === 'success' && showGsmInitSuccess ? (
-          <div style={{ padding: '12px 16px' }}>
+          <div className="app-message">
             <ImpactMessage
               variant="success"
               title="Modem GSM initialisé"
@@ -249,7 +224,7 @@ function App() {
             </ImpactMessage>
           </div>
         ) : gsmInitState === 'error' ? (
-          <div style={{ padding: '12px 16px' }}>
+          <div className="app-message">
             <ImpactMessage
               variant="error"
               title="Erreur lors de l'initialisation du modem GSM"
@@ -268,7 +243,7 @@ function App() {
         <main className={`split-view ${gsmInitState === 'success' ? '' : 'disabled'}`}>
           <Product 
             key="productA" 
-            productLabel="Product A" 
+            productLabel="Produit A"
             simSelectId="simSelectA" 
             assignedSimCardNumber={simAssignments?.simA}
             currentOperationNumber={operation?.operationNumber}
@@ -277,7 +252,7 @@ function App() {
           />
           <Product 
             key="productB" 
-            productLabel="Product B" 
+            productLabel="Produit B"
             simSelectId="simSelectB" 
             assignedSimCardNumber={simAssignments?.simB}
             currentOperationNumber={operation?.operationNumber}
