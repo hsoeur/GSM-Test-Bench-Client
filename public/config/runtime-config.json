@@ -1,8 +1,8 @@
 {
   "apiBases": {
     "TEST_GSM": "http://localhost:5001",
-    "DATA": "http://192.168.1.104:10001",
-    "MO": "http://192.168.1.104:10001",
+    "DATA": "http://localhost:5400",
+    "MO": "http://localhost:5400",
     "PRINT": "http://192.168.1.104:12003"
   },
   "productStatusUids": {

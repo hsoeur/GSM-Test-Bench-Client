@@ -4,6 +4,7 @@ import { ENDPOINTS, API_BASES } from '../config/apiConfig.js'
 import { getJson } from '../services/http.js'
 import { checkDataHealth } from '../services/healthService.js'
 import { getManufacturingOrderByUid } from '../services/manufacturingOrderService.js'
+import { getManufacturingOrderSynchronization } from '../services/manufacturingOrderSynchronizationService.js'
 import { validateManufacturingOrder } from '../services/manufacturingOrderValidationService.js'
 import { getOperationsByProductUid } from '../services/operationService.js'
 import { getCurrentOperators } from '../services/operatorService.js'
@@ -96,6 +97,16 @@ describe('API Data réelle — endpoints consommés par TestGsm', () => {
       manufacturingOrderUid: fixture.order.manufacturingOrderUid,
       productUid: fixture.order.productUid,
     })
+  })
+
+  it('GET ManufacturingOrders/{id}/synchronization retourne un état exploitable', async () => {
+    const result = await getManufacturingOrderSynchronization(fixture.order.manufacturingOrderUid, 10000)
+    expectJsonObject(result)
+    expect(result.data.manufacturingOrderId).toBe(fixture.order.manufacturingOrderUid)
+    expect(result.data.isSynchronized).toBeTypeOf('boolean')
+    expect(result.data.hasQuantityDesynchronization).toBeTypeOf('boolean')
+    expect(result.data.hasSerialNumberDesynchronization).toBeTypeOf('boolean')
+    expect(result.data.message).toBeTypeOf('string')
   })
 
   it('POST ManufacturingOrders/validate valide le produit et la plage série réels', async () => {
